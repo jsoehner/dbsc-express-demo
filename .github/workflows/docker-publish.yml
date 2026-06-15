@@ -27,6 +27,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -38,7 +39,7 @@ jobs:
         with:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/dbsc-express-demo
+            ${{ secrets.DOCKERHUB_USERNAME != '' && format('{0}/dbsc-express-demo', secrets.DOCKERHUB_USERNAME) || '' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
