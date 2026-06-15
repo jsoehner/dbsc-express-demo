@@ -136,6 +136,7 @@
       word-break: break-all;
       border: 1px solid var(--border);
       min-height: 60px;
+      line-height: 1.5;
     }
 
     .hidden {
@@ -408,7 +409,7 @@
       const out = $("auth-output");
       out.classList.add("flashing");
       out.style.color = "var(--text-muted)";
-      out.textContent = `Processing ${action}...`;
+      out.innerHTML = `<div><span style="color:#38bdf8">Step 1:</span> Authenticating to get standard session...</div>`;
       
       try {
         const res = await fetch(`/api/auth/${action}/email`, {
@@ -435,14 +436,26 @@
           return;
         }
 
-        out.style.color = "var(--success)";
-        out.textContent = "Success! Initializing DBSC binding...";
+        await new Promise(r => setTimeout(r, 600));
+        out.innerHTML += `<div><span style="color:#10b981">✓ Standard session created & cookie received</span></div>`;
+        
+        await new Promise(r => setTimeout(r, 600));
+        out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 2:</span> Requesting WebCrypto to generate hardware-bound P-256 keypair...</div>`;
         
         // 2. IMPORTANT: Re-init DBSC so it binds the newly created session
         if (window.initDbsc) {
           try {
             await window.initDbsc();
-            out.textContent = "Device successfully bound!";
+            
+            await new Promise(r => setTimeout(r, 800));
+            out.innerHTML += `<div><span style="color:#10b981">✓ Keypair generated in browser</span></div>`;
+            
+            await new Promise(r => setTimeout(r, 600));
+            out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 3:</span> Registering public key with server to bind to session...</div>`;
+            
+            await new Promise(r => setTimeout(r, 800));
+            out.innerHTML += `<div><span style="color:#10b981">✓ Server bound public key! Device is now registered.</span></div>`;
+            
           } catch (dbscErr) {
             out.style.color = "#fbbf24"; // warning yellow
             out.textContent = `Warning: Device binding failed (${dbscErr.message || "Unknown error"}). You are signed in but unprotected.`;
@@ -458,7 +471,8 @@
           $("app-output").style.color = "var(--text-muted)";
           $("app-output").textContent = "Device bound successfully. Ready for requests.";
           out.classList.remove("flashing");
-        }, 1000);
+          out.innerHTML = "Ready.";
+        }, 2000);
         
       } catch (err) {
         out.classList.remove("flashing");
