@@ -25,6 +25,13 @@ else
     exit 1
 fi
 
+# Check if certs directory exists
+if [ ! -d "certs" ]; then
+    echo "🔐 Generating localhost certificates in 'certs' directory..."
+    mkdir certs
+    openssl req -nodes -new -x509 -keyout certs/server.key -out certs/server.cert -days 365 -subj "/CN=localhost"
+fi
+
 echo "🚀 Pulling latest image from $TARGET_IMAGE..."
 docker pull $TARGET_IMAGE
 
@@ -38,4 +45,5 @@ echo "--------------------------------------------------------"
 # --rm: Automatically remove the container when it exits
 # -it: Interactive terminal
 # -p: Map port 3000
-docker run -p 3000:3000 --rm -it $TARGET_IMAGE
+# -v: Map certs directory
+docker run -v "$(pwd)/certs:/app/certs" -p 3000:3000 --rm -it $TARGET_IMAGE

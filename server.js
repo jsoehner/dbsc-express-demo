@@ -72,9 +72,11 @@ app.get("/me", requireProof(), (req, res) => {
 });
 
 // Start HTTPS server
+const keyPath = fs.existsSync("certs/server.key") ? "certs/server.key" : "server.key";
+const certPath = fs.existsSync("certs/server.cert") ? "certs/server.cert" : "server.cert";
 const options = {
-  key: fs.readFileSync("server.key"),
-  cert: fs.readFileSync("server.cert")
+  key: fs.readFileSync(keyPath),
+  cert: fs.readFileSync(certPath)
 };
 
 https.createServer(options, app).listen(3000, () => {
