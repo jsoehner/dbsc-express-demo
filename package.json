@@ -5,7 +5,9 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "docker:build": "./build-docker.sh",
+    "docker:run": "./run-docker.sh ghcr"
   },
   "dependencies": {
     "@dbsc-toolkit/better-auth": "^1.1.0",
