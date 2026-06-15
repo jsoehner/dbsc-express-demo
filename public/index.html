@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DBSC Device Binding Demo</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      background: linear-gradient(to right, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--text);
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      margin-bottom: 0.75rem;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    button.primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    button.danger {
+      background-color: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+
+    button.danger:hover {
+      background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    .output {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #000;
+      border-radius: 0.5rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #10b981;
+      white-space: pre-wrap;
+      word-break: break-all;
+      border: 1px solid var(--border);
+      min-height: 60px;
+    }
+
+    .hidden {
+      display: none;
+    }
+    
+    @keyframes pulse-border {
+      0% { border-color: var(--border); box-shadow: 0 0 0 rgba(59, 130, 246, 0); }
+      50% { border-color: var(--primary); box-shadow: 0 0 12px rgba(59, 130, 246, 0.6); }
+      100% { border-color: var(--border); box-shadow: 0 0 0 rgba(59, 130, 246, 0); }
+    }
+    
+    .output.flashing {
+      animation: pulse-border 1.2s infinite;
+    }
+    
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+    }
+
+    /* Tooltip styles */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 280px;
+      background-color: #334155;
+      color: #f8fafc;
+      text-align: center;
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      position: absolute;
+      z-index: 10;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 8px;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      font-size: 0.8rem;
+      font-weight: 400;
+      line-height: 1.4;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -6px;
+      border-width: 6px;
+      border-style: solid;
+      border-color: #334155 transparent transparent transparent;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+    
+    /* Log Panel */
+    .logs-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      margin-top: 2rem;
+    }
+    
+    @media (min-width: 1024px) {
+      .container {
+        max-width: 1200px;
+      }
+      .logs-container {
+        flex-direction: row;
+      }
+      .log-column {
+        flex: 1;
+      }
+    }
+    
+    .log-column h3 {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .log-panel {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #10b981;
+      height: 350px;
+      overflow-y: auto;
+      box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.4);
+    }
+    .log-entry { margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
+    .log-time { color: #64748b; font-size: 0.75rem; }
+    .log-method { color: #38bdf8; font-weight: 600; }
+    .log-url { color: #f8fafc; }
+    .log-payload { color: #a78bfa; white-space: pre-wrap; margin-top: 4px; word-break: break-all; }
+  </style>
+  
+  <!-- 1. The DBSC init shim -->
+  <script src="/api/auth/dbsc-client/init.js" type="module"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Device Bound Sessions</h1>
+    <p class="subtitle">Powered by @dbsc-toolkit & Better Auth</p>
+    
+    <div class="card" id="auth-panel">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" value="demo@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" value="password123" />
+      </div>
+      <div class="tooltip">
+        <button class="primary" id="signup-btn">Sign Up & Bind Device</button>
+        <span class="tooltiptext">Creates an account and binds a cryptographic key to this browser via DBSC, locking the session to this device.</span>
+      </div>
+      <div class="tooltip">
+        <button class="primary" id="signin-btn" style="background: var(--border);">Sign In</button>
+        <span class="tooltiptext">Logs into an existing account and re-initializes the device binding for this browser.</span>
+      </div>
+      <div class="output" id="auth-output">Ready.</div>
+    </div>
+
+    <div class="card hidden" id="app-panel">
+      <p style="text-align:center; margin-top:0;">You are authenticated.</p>
+      
+      <div class="tooltip">
+        <button class="primary" id="fetch-btn">Fetch Protected /me (Bound)</button>
+        <span class="tooltiptext">Uses boundFetch to automatically sign the request with your browser's private key, proving device possession.</span>
+      </div>
+      
+      <div class="tooltip" style="margin-top: 0.5rem;">
+        <button class="danger" id="stolen-btn" style="margin-bottom: 0;">Simulate Stolen Cookie (Unbound)</button>
+        <span class="tooltiptext">Sends a standard fetch request with your session cookie but without a signature. Simulates an attacker using a stolen cookie on another device.</span>
+      </div>
+
+      <div class="tooltip" style="margin-top: 0.5rem;">
+        <button class="primary" id="recertify-btn" style="background: var(--border); margin-bottom: 0;">Remove & Recertify Binding</button>
+        <span class="tooltiptext">Clears the current local cryptographic key and generates a new one, replacing the device binding for this session.</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <button class="danger" id="logout-btn" style="border:none;">Sign Out</button>
+      
+      <div class="output" id="app-output">Waiting for request...</div>
+    </div>
+
+    <!-- Persistent Logs Section -->
+    <div class="logs-container">
+      <div class="log-column">
+        <h3>App & Device Network Logs</h3>
+        <div class="log-panel" id="device-logs">
+          <div style="color:#64748b;">Waiting for device requests...</div>
+        </div>
+      </div>
+      <div class="log-column">
+        <h3>Cryptographic Protocol Logs</h3>
+        <div class="log-panel" id="crypto-logs">
+          <div style="color:#64748b;">Waiting for cryptographic events...</div>
+        </div>
+      </div>
+      <div class="log-column">
+        <h3>Current Public Key (PEM)</h3>
+        <div class="log-panel" id="pem-box" style="color: #f8fafc; white-space: pre-wrap;">
+          <div style="color:#64748b;">No key generated yet...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const $ = id => document.getElementById(id);
+    const deviceLogs = $("device-logs");
+    const cryptoLogs = $("crypto-logs");
+    const pemBox = $("pem-box");
+
+    // --- Utility: Convert JWK to PEM ---
+    async function jwkToPem(jwk) {
+      try {
+        const key = await crypto.subtle.importKey(
+          "jwk",
+          jwk,
+          { name: "ECDSA", namedCurve: "P-256" },
+          true,
+          ["verify"]
+        );
+        const exported = await crypto.subtle.exportKey("spki", key);
+        const exportedAsBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)));
+        const pem = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64.match(/.{1,64}/g).join('\\n')}\n-----END PUBLIC KEY-----`;
+        return pem;
+      } catch (e) {
+        return "Error converting key: " + e.message;
+      }
+    }
+
+    // --- Intercept Fetch to Log Client Activity ---
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+      const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+      const method = (args[1] && args[1].method) || 'GET';
+      
+      const isCrypto = url.includes('/dbsc-bound/') || url.includes('/dbsc/');
+      
+      // We log all fetch requests
+      const time = new Date().toLocaleTimeString();
+      let payloadStr = "";
+      
+      if (args[1] && args[1].body) {
+        try {
+          const bodyParsed = JSON.parse(args[1].body);
+          
+          // Recombine and show the JWK as PEM in the dedicated window
+          if (bodyParsed.publicKey) {
+            jwkToPem(bodyParsed.publicKey).then(pem => {
+              pemBox.innerHTML = `
+                <div style="color:#38bdf8; margin-bottom: 8px; font-weight: bold;">Extracted via WebCrypto:</div>
+                <div style="word-break: break-all;">${pem}</div>
+              `;
+            });
+          }
+          
+          payloadStr = JSON.stringify(bodyParsed, null, 2);
+        } catch(e) {
+            payloadStr = args[1].body;
+        }
+      }
+
+      const logHtml = `
+        <div class="log-entry">
+          <span class="log-time">[${time}]</span> <span class="log-method">${method}</span> <span class="log-url">${url}</span>
+          ${payloadStr ? `<div class="log-payload">${payloadStr}</div>` : ''}
+        </div>
+      `;
+      
+      const targetPanel = isCrypto ? cryptoLogs : deviceLogs;
+      
+      if (targetPanel.innerHTML.includes("Waiting for")) {
+        targetPanel.innerHTML = "";
+      }
+      targetPanel.insertAdjacentHTML('afterbegin', logHtml);
+
+      return originalFetch.apply(this, args);
+    };
+
+    async function handleAuth(action) {
+      const email = $("email").value;
+      const password = $("password").value;
+      const name = "Demo User";
+      
+      const out = $("auth-output");
+      out.classList.add("flashing");
+      out.style.color = "var(--text-muted)";
+      out.textContent = `Processing ${action}...`;
+      
+      try {
+        const res = await fetch(`/api/auth/${action}/email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, name })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          const errMsg = data.message || data.error?.message || JSON.stringify(data);
+          out.classList.remove("flashing");
+          
+          // Auto-fallback to sign-in if they tried to sign up an existing account
+          if (action === "sign-up" && errMsg.includes("User already exists")) {
+            out.style.color = "#fbbf24";
+            out.textContent = "User already exists. Automatically signing in instead...";
+            return handleAuth("sign-in");
+          }
+          
+          out.style.color = "var(--danger)";
+          out.textContent = `Error: ${errMsg}`;
+          return;
+        }
+
+        out.style.color = "var(--success)";
+        out.textContent = "Success! Initializing DBSC binding...";
+        
+        // 2. IMPORTANT: Re-init DBSC so it binds the newly created session
+        if (window.initDbsc) {
+          try {
+            await window.initDbsc();
+            out.textContent = "Device successfully bound!";
+          } catch (dbscErr) {
+            out.style.color = "#fbbf24"; // warning yellow
+            out.textContent = `Warning: Device binding failed (${dbscErr.message || "Unknown error"}). You are signed in but unprotected.`;
+          }
+        } else {
+          out.style.color = "#fbbf24";
+          out.textContent = "Warning: DBSC SDK not loaded. Proceeding unbound.";
+        }
+        
+        setTimeout(() => {
+          $("auth-panel").classList.add("hidden");
+          $("app-panel").classList.remove("hidden");
+          $("app-output").style.color = "var(--text-muted)";
+          $("app-output").textContent = "Device bound successfully. Ready for requests.";
+          out.classList.remove("flashing");
+        }, 1000);
+        
+      } catch (err) {
+        out.classList.remove("flashing");
+        out.style.color = "var(--danger)";
+        out.textContent = `Network Error: ${err.message}`;
+      }
+    }
+
+    $("signup-btn").addEventListener("click", () => handleAuth("sign-up"));
+    $("signin-btn").addEventListener("click", () => handleAuth("sign-in"));
+
+    $("fetch-btn").addEventListener("click", async () => {
+      const out = $("app-output");
+      out.classList.add("flashing");
+      out.textContent = "Loading...";
+      try {
+        // 3. IMPORTANT: Use boundFetch instead of fetch for guarded routes
+        const fetcher = window.boundFetch || fetch;
+        const res = await fetcher("/me", { credentials: "include" });
+        const data = await res.json();
+        
+        out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        out.textContent = `Error: ${err.message}`;
+      } finally {
+        out.classList.remove("flashing");
+      }
+    });
+
+    $("stolen-btn").addEventListener("click", async () => {
+      const out = $("app-output");
+      out.classList.add("flashing");
+      out.style.color = "var(--text-muted)";
+      out.textContent = "Loading (Simulating attacker without device key)...";
+      try {
+        // We use plain fetch instead of boundFetch to simulate an attacker 
+        // who stole the cookie but can't generate the DBSC signature.
+        const res = await fetch("/me", { credentials: "include" });
+        const data = await res.json();
+        
+        out.style.color = res.ok ? "var(--success)" : "var(--danger)";
+        out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        out.style.color = "var(--danger)";
+        out.textContent = `Error: ${err.message}`;
+      } finally {
+        out.classList.remove("flashing");
+      }
+    });
+
+    $("recertify-btn").addEventListener("click", async () => {
+      const out = $("app-output");
+      out.classList.add("flashing");
+      out.style.color = "var(--text-muted)";
+      out.textContent = "Clearing existing key...";
+      try {
+        if (window.clearBoundKey) {
+          await window.clearBoundKey();
+        }
+        out.textContent = "Old key cleared. Generating new key and binding...";
+        
+        if (window.initDbsc) {
+          await window.initDbsc();
+          out.style.color = "var(--success)";
+          out.textContent = "Successfully removed old binding and generated a new key!";
+        } else {
+          out.style.color = "#fbbf24";
+          out.textContent = "Warning: DBSC SDK not loaded.";
+        }
+      } catch (err) {
+        out.style.color = "var(--danger)";
+        out.textContent = `Error during recertification: ${err.message}`;
+      } finally {
+        out.classList.remove("flashing");
+      }
+    });
+
+    $("logout-btn").addEventListener("click", async () => {
+      await fetch("/api/auth/sign-out", { method: "POST" });
+      if (window.clearBoundKey) {
+        await window.clearBoundKey();
+      }
+      $("auth-panel").classList.remove("hidden");
+      $("app-panel").classList.add("hidden");
+      $("auth-output").textContent = "Signed out.";
+    });
+  </script>
+</body>
+</html>

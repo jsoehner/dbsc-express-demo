@@ -1,0 +1,18 @@
+{
+  "name": "dbsc-express-demo",
+  "version": "1.0.0",
+  "description": "DBSC demo with Express in Docker",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@dbsc-toolkit/better-auth": "^1.1.0",
+    "better-auth": "^1.6.18",
+    "better-sqlite3": "^12.10.1",
+    "cookie-parser": "^1.4.6",
+    "dbsc-toolkit": "^2.11.0",
+    "express": "^5.2.1"
+  }
+}
