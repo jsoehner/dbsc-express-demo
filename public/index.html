@@ -55,7 +55,7 @@
     .card {
       background: var(--panel);
       border-radius: 1rem;
-      padding: 2rem;
+      padding: 1.25rem;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       border: 1px solid var(--border);
     }
@@ -149,7 +149,7 @@
       100% { border-color: var(--border); box-shadow: 0 0 0 rgba(59, 130, 246, 0); }
     }
     
-    .output.flashing {
+    .output.flashing, .log-panel.flashing {
       animation: pulse-border 1.2s infinite;
     }
     
@@ -214,14 +214,63 @@
     
     @media (min-width: 1024px) {
       .container {
-        max-width: 1200px;
+        max-width: 1400px;
+      }
+      .main-layout {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+      }
+      .controls-column {
+        flex: 0 0 340px;
       }
       .logs-container {
-        flex-direction: row;
-      }
-      .log-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
         flex: 1;
+        margin-top: 0;
       }
+    }
+    
+    .diagram-container {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem 1.5rem;
+    }
+    .diagram-node {
+      background: #0f172a;
+      border: 1px solid #3b82f6;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      color: #f8fafc;
+      z-index: 2;
+    }
+    .diagram-path {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      margin: 0 1.5rem;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .packet {
+      width: 14px;
+      height: 14px;
+      background: #3b82f6;
+      border-radius: 50%;
+      position: absolute;
+      left: 0;
+      opacity: 0;
+      box-shadow: 0 0 8px #3b82f6;
     }
     
     .log-column h3 {
@@ -236,11 +285,11 @@
       background: #0f172a;
       border: 1px solid #1e293b;
       border-radius: 12px;
-      padding: 16px;
+      padding: 12px;
       font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #10b981;
-      height: 350px;
+      height: 220px;
       overflow-y: auto;
       box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.4);
     }
@@ -250,7 +299,130 @@
     .log-url { color: #f8fafc; }
     .log-payload { color: #a78bfa; white-space: pre-wrap; margin-top: 4px; word-break: break-all; }
   </style>
-  
+  <script>
+    const $ = id => document.getElementById(id);
+
+    // --- Utility: Convert JWK to PEM ---
+    async function jwkToPem(jwk) {
+      try {
+        const key = await crypto.subtle.importKey(
+          "jwk",
+          jwk,
+          { name: "ECDSA", namedCurve: "P-256" },
+          true,
+          ["verify"]
+        );
+        const exported = await crypto.subtle.exportKey("spki", key);
+        const exportedAsBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)));
+        const pem = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64.match(/.{1,64}/g).join('\\n')}\n-----END PUBLIC KEY-----`;
+        return pem;
+      } catch (e) {
+        return "Error converting key: " + e.message;
+      }
+    }
+
+    // --- Intercept Fetch to Log Client Activity ---
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+      const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+      const method = (args[1] && args[1].method) || 'GET';
+      
+      const isCrypto = url.includes('/dbsc-bound/') || url.includes('/dbsc');
+      
+      // We log all fetch requests
+      const time = new Date().toLocaleTimeString();
+      let payloadStr = "";
+      
+      if (args[1] && args[1].body) {
+        try {
+          const bodyParsed = JSON.parse(args[1].body);
+          
+          // Recombine and show the JWK as PEM in the dedicated window
+          if (bodyParsed.publicKey) {
+            jwkToPem(bodyParsed.publicKey).then(pem => {
+              const pemBox = $("pem-box");
+              if (pemBox) {
+                pemBox.innerHTML = `
+                  <div style="color:#38bdf8; margin-bottom: 8px; font-weight: bold;">Extracted via WebCrypto:</div>
+                  <div style="word-break: break-all;">${pem}</div>
+                `;
+              }
+            });
+          }
+          
+          payloadStr = JSON.stringify(bodyParsed, null, 2);
+        } catch(e) {
+            payloadStr = args[1].body;
+        }
+      }
+
+      const logHtml = `
+        <div class="log-entry">
+          <span class="log-time">[${time}]</span> <span class="log-method">${method}</span> <span class="log-url">${url}</span>
+          ${payloadStr ? `<div class="log-payload">${payloadStr}</div>` : ''}
+        </div>
+      `;
+      
+      const cryptoLogs = $("crypto-logs");
+      const deviceLogs = $("device-logs");
+      const targetPanel = isCrypto ? cryptoLogs : deviceLogs;
+      
+      if (targetPanel && targetPanel.innerHTML.includes("Waiting for")) {
+        targetPanel.innerHTML = "";
+      }
+      if (targetPanel) {
+        targetPanel.insertAdjacentHTML('afterbegin', logHtml);
+      }
+
+      // Trigger animation per-request
+      const path = document.querySelector('.diagram-path');
+      if (path) {
+        const pkt = document.createElement('div');
+        pkt.className = 'packet';
+        path.appendChild(pkt);
+        
+        pkt.style.transition = 'none';
+        pkt.style.left = '0';
+        pkt.style.opacity = '1';
+        pkt.style.background = '#3b82f6';
+        pkt.style.boxShadow = '0 0 10px #3b82f6';
+        
+        void pkt.offsetWidth; // force reflow
+        
+        pkt.style.transition = 'left 0.4s ease-in, opacity 0.2s';
+        pkt.style.left = 'calc(100% - 14px)';
+        
+        const responsePromise = originalFetch.apply(this, args);
+        
+        // Wait for both the network response AND the 450ms outgoing animation to finish
+        Promise.all([
+          responsePromise.catch(e => e), // catch so Promise.all doesn't fail fast
+          new Promise(r => setTimeout(r, 450))
+        ]).then(([resOrErr]) => {
+          if (resOrErr instanceof Error) {
+            pkt.style.background = '#ef4444';
+            pkt.style.boxShadow = '0 0 10px #ef4444';
+            pkt.style.opacity = '0';
+            setTimeout(() => pkt.remove(), 200);
+            return;
+          }
+          
+          pkt.style.background = '#10b981';
+          pkt.style.boxShadow = '0 0 10px #10b981';
+          pkt.style.left = '0';
+          setTimeout(() => {
+            pkt.style.opacity = '0';
+            setTimeout(() => pkt.remove(), 200);
+          }, 400);
+        });
+        
+        return responsePromise;
+      }
+
+      return originalFetch.apply(this, args);
+    };
+  </script>
+
   <!-- 1. The DBSC init shim -->
   <script src="/api/auth/dbsc-client/init.js" type="module"></script>
 </head>
@@ -259,7 +431,9 @@
     <h1>Device Bound Sessions</h1>
     <p class="subtitle">Powered by @dbsc-toolkit & Better Auth</p>
     
-    <div class="card" id="auth-panel">
+    <div class="main-layout">
+      <div class="controls-column">
+        <div class="card" id="auth-panel">
       <div class="form-group">
         <label>Email</label>
         <input type="email" id="email" value="demo@example.com" />
@@ -276,7 +450,6 @@
         <button class="primary" id="signin-btn" style="background: var(--border);">Sign In</button>
         <span class="tooltiptext">Logs into an existing account and re-initializes the device binding for this browser.</span>
       </div>
-      <div class="output" id="auth-output">Ready.</div>
     </div>
 
     <div class="card hidden" id="app-panel">
@@ -304,12 +477,20 @@
       <div class="output" id="app-output">Waiting for request...</div>
     </div>
 
-    <!-- Persistent Logs Section -->
-    <div class="logs-container">
+  </div>
+
+  <!-- Persistent Logs Section -->
+  <div class="logs-container">
+      <div class="diagram-container">
+        <div class="diagram-node">Browser Client 🖥️</div>
+        <div class="diagram-path">
+        </div>
+        <div class="diagram-node">Node.js Server ☁️</div>
+      </div>
       <div class="log-column">
-        <h3>App & Device Network Logs</h3>
-        <div class="log-panel" id="device-logs">
-          <div style="color:#64748b;">Waiting for device requests...</div>
+        <h3>Authentication Flow</h3>
+        <div class="log-panel" id="auth-output" style="color: #f8fafc; font-family: 'Inter', sans-serif; font-size: 0.9rem; line-height: 1.5;">
+          <div style="color:#64748b;">Ready.</div>
         </div>
       </div>
       <div class="log-column">
@@ -324,87 +505,30 @@
           <div style="color:#64748b;">No key generated yet...</div>
         </div>
       </div>
+      <div class="log-column">
+        <h3>App & Device Network Logs</h3>
+        <div class="log-panel" id="device-logs">
+          <div style="color:#64748b;">Waiting for device requests...</div>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 
   <script type="module">
-    const $ = id => document.getElementById(id);
     const deviceLogs = $("device-logs");
     const cryptoLogs = $("crypto-logs");
     const pemBox = $("pem-box");
-
-    // --- Utility: Convert JWK to PEM ---
-    async function jwkToPem(jwk) {
-      try {
-        const key = await crypto.subtle.importKey(
-          "jwk",
-          jwk,
-          { name: "ECDSA", namedCurve: "P-256" },
-          true,
-          ["verify"]
-        );
-        const exported = await crypto.subtle.exportKey("spki", key);
-        const exportedAsBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)));
-        const pem = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64.match(/.{1,64}/g).join('\\n')}\n-----END PUBLIC KEY-----`;
-        return pem;
-      } catch (e) {
-        return "Error converting key: " + e.message;
-      }
-    }
-
-    // --- Intercept Fetch to Log Client Activity ---
-    const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
-      const url = typeof args[0] === 'string' ? args[0] : args[0].url;
-      const method = (args[1] && args[1].method) || 'GET';
-      
-      const isCrypto = url.includes('/dbsc-bound/') || url.includes('/dbsc/');
-      
-      // We log all fetch requests
-      const time = new Date().toLocaleTimeString();
-      let payloadStr = "";
-      
-      if (args[1] && args[1].body) {
-        try {
-          const bodyParsed = JSON.parse(args[1].body);
-          
-          // Recombine and show the JWK as PEM in the dedicated window
-          if (bodyParsed.publicKey) {
-            jwkToPem(bodyParsed.publicKey).then(pem => {
-              pemBox.innerHTML = `
-                <div style="color:#38bdf8; margin-bottom: 8px; font-weight: bold;">Extracted via WebCrypto:</div>
-                <div style="word-break: break-all;">${pem}</div>
-              `;
-            });
-          }
-          
-          payloadStr = JSON.stringify(bodyParsed, null, 2);
-        } catch(e) {
-            payloadStr = args[1].body;
-        }
-      }
-
-      const logHtml = `
-        <div class="log-entry">
-          <span class="log-time">[${time}]</span> <span class="log-method">${method}</span> <span class="log-url">${url}</span>
-          ${payloadStr ? `<div class="log-payload">${payloadStr}</div>` : ''}
-        </div>
-      `;
-      
-      const targetPanel = isCrypto ? cryptoLogs : deviceLogs;
-      
-      if (targetPanel.innerHTML.includes("Waiting for")) {
-        targetPanel.innerHTML = "";
-      }
-      targetPanel.insertAdjacentHTML('afterbegin', logHtml);
-
-      return originalFetch.apply(this, args);
-    };
 
     async function handleAuth(action) {
       const email = $("email").value;
       const password = $("password").value;
       const name = "Demo User";
+      
+      // Clear all log panels
+      $("device-logs").innerHTML = `<div style="color:#64748b;">Waiting for device requests...</div>`;
+      $("crypto-logs").innerHTML = `<div style="color:#64748b;">Waiting for cryptographic events...</div>`;
+      $("pem-box").innerHTML = `<div style="color:#64748b;">No key generated yet...</div>`;
       
       const out = $("auth-output");
       out.classList.add("flashing");
@@ -471,7 +595,6 @@
           $("app-output").style.color = "var(--text-muted)";
           $("app-output").textContent = "Device bound successfully. Ready for requests.";
           out.classList.remove("flashing");
-          out.innerHTML = "Ready.";
         }, 2000);
         
       } catch (err) {

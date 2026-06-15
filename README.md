@@ -31,3 +31,12 @@ npm run docker:run
 ```
 
 This will run the container and automatically mount the necessary local TLS certificates generated in the `certs/` directory, mapping the container to `https://localhost:3000`.
+
+## Lessons Learned
+
+During development and UI iteration, several important lessons were learned:
+
+1. **Database Migrations in Docker**: Better Auth's SQLite integration requires database migrations to run inside the same environment where the server runs. Updating `package.json` to execute `npx --yes @better-auth/cli migrate -y --config server.js` before starting the server ensures tables like `user` are created dynamically in the container on boot.
+2. **Mounting Static Assets**: To avoid rebuilding the Docker container during frontend UI development, it's crucial to mount the `public/` directory via a Docker volume (`-v "$(pwd)/public:/app/public"`).
+3. **Intercepting SDK Network Requests**: The DBSC client SDK automatically captures a reference to the native `window.fetch`. To successfully intercept and log these cryptographic protocol requests for the UI animation, the custom `fetch` override must be defined in the `<head>` of the HTML *before* the SDK script is loaded.
+4. **CSS Animation Timings with Fast Localhosts**: When animating visual packets to represent network requests, extremely fast responses on `localhost` can cause CSS animations to jitter or instantly reverse before reaching their destination. Awaiting a minimum forward-animation duration alongside the network `fetch` Promise guarantees the packet reaches the "server" node visually.
