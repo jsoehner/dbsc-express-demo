@@ -138,8 +138,6 @@ jobs:
         id: gitleaks
         uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
-        with:
-          args: detect --report-format json --report-path gitleaks-report.json --verbose --redact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
