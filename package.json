@@ -7,7 +7,8 @@
   "scripts": {
     "start": "npx --yes @better-auth/cli migrate -y --config server.js && node server.js",
     "docker:build": "./build-docker.sh",
-    "docker:run": "./run-docker.sh ghcr"
+    "docker:run": "./run-docker.sh ghcr",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@dbsc-toolkit/better-auth": "^1.1.0",
