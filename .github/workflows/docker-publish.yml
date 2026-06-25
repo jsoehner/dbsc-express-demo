@@ -25,6 +25,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Node.js 24
+
+        uses: actions/setup-node@v4
+
+        with:
+
+          node-version: '24'
+
+
       - name: Bump version and push tag
         id: tag_version
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
