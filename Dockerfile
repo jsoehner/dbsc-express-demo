@@ -12,5 +12,8 @@ COPY . .
 # Expose port 3000
 EXPOSE 3000
 
+# Set non-root user
+USER node
+
 # Start the application
 CMD ["npm", "start"]
