@@ -610,6 +610,7 @@
     $("fetch-btn").addEventListener("click", async () => {
       const out = $("app-output");
       out.classList.add("flashing");
+      out.style.color = "var(--text-muted)";
       out.textContent = "Loading...";
       try {
         // 3. IMPORTANT: Use boundFetch instead of fetch for guarded routes
@@ -617,8 +618,10 @@
         const res = await fetcher("/me", { credentials: "include" });
         const data = await res.json();
         
+        out.style.color = res.ok ? "var(--success)" : "var(--danger)";
         out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
       } catch (err) {
+        out.style.color = "var(--danger)";
         out.textContent = `Error: ${err.message}`;
       } finally {
         out.classList.remove("flashing");

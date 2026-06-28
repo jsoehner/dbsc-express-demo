@@ -11,11 +11,11 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "@dbsc-toolkit/better-auth": "^1.1.0",
-    "better-auth": "^1.6.18",
-    "better-sqlite3": "^12.10.1",
-    "cookie-parser": "^1.4.6",
-    "dbsc-toolkit": "^2.11.0",
+    "@dbsc-toolkit/better-auth": "^1.2.2",
+    "better-auth": "^1.6.22",
+    "better-sqlite3": "^12.11.1",
+    "cookie-parser": "^1.4.7",
+    "dbsc-toolkit": "^2.14.1",
     "express": "^5.2.1"
   }
 }

@@ -1,0 +1,2 @@
+# Ignore self-signed demo key used for local HTTPS development
+2c05dfd2be85652882520e921a96f5968494e420:server.key:private-key:1
