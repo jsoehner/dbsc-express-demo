@@ -473,6 +473,7 @@
       <div class="divider"></div>
       
       <button class="danger" id="logout-btn" style="border:none;">Sign Out</button>
+      <button class="danger" id="delete-cookie-btn" style="border:none; color: #fbbf24; border-top: 1px solid var(--border); border-radius: 0; padding-top: 1rem; margin-top: 0.5rem;">Delete Local Cookie</button>
       
       <div class="output" id="app-output">Waiting for request...</div>
     </div>
@@ -520,7 +521,7 @@
     const cryptoLogs = $("crypto-logs");
     const pemBox = $("pem-box");
 
-    async function handleAuth(action) {
+    async function handleAuth(action, bindDevice = false) {
       const email = $("email").value;
       const password = $("password").value;
       const name = "Demo User";
@@ -552,7 +553,7 @@
           if (action === "sign-up" && errMsg.includes("User already exists")) {
             out.style.color = "#fbbf24";
             out.textContent = "User already exists. Automatically signing in instead...";
-            return handleAuth("sign-in");
+            return handleAuth("sign-in", bindDevice);
           }
           
           out.style.color = "var(--danger)";
@@ -566,7 +567,7 @@
         await new Promise(r => setTimeout(r, 600));
         out.innerHTML += `<div><span style="color:#10b981">✓ Standard session created & cookie received</span></div>`;
         
-        if (action === "sign-up") {
+        if (bindDevice) {
           await new Promise(r => setTimeout(r, 600));
           out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 2:</span> Requesting WebCrypto to generate hardware-bound P-256 keypair...</div>`;
           
@@ -598,7 +599,7 @@
           $("auth-panel").classList.add("hidden");
           $("app-panel").classList.remove("hidden");
           $("app-output").style.color = "var(--text-muted)";
-          if (action === "sign-up") {
+          if (bindDevice) {
             $("app-output").textContent = "Device bound successfully. Ready for requests.";
           } else {
             $("app-output").textContent = "Signed in normally (Unbound session). Ready for requests.";
@@ -613,8 +614,16 @@
       }
     }
 
-    $("signup-btn").addEventListener("click", () => handleAuth("sign-up"));
-    $("signin-btn").addEventListener("click", () => handleAuth("sign-in"));
+    $("signup-btn").addEventListener("click", () => handleAuth("sign-up", true));
+    $("signin-btn").addEventListener("click", () => handleAuth("sign-in", false));
+
+    $("delete-cookie-btn").addEventListener("click", () => {
+      document.cookie = "better-auth.session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "better-auth.session_token_sec=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      const out = $("app-output");
+      out.style.color = "#fbbf24";
+      out.textContent = "Local session cookies deleted. You are now unauthenticated but the UI has not refreshed. Try fetching /me to see it fail!";
+    });
 
     $("fetch-btn").addEventListener("click", async () => {
       const out = $("app-output");
