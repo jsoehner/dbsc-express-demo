@@ -46,3 +46,20 @@ During development and UI iteration, several important lessons were learned:
 8. **Multi-Stage Node Builds**: Moving to a multi-stage Docker build is a great way to discard the bulky dependencies (like OS packages such as `openssl` or cached `npm` modules) needed to build certificates or generate SQLite migration files, yielding a significantly smaller, hardened production container.
 9. **State Preservation in DBSC UIs**: When interacting with APIs that only return the session's current active `tier` (e.g., fetching a protected `/me` route), be careful not to accidentally overwrite the browser's hardware capability `phase` state in your UI. A session's tier may be `bound` (Web Crypto) even if the hardware phase is `native-dbsc` (due to server fallbacks). Always preserve the initial hardware capability phase globally to prevent UI components from spontaneously downgrading when receiving partial state updates.
 10. **Native DBSC vs polyfill `boundFetch`**: The `dbsc-toolkit` provides a `window.boundFetch` polyfill wrapper AND monkey-patches `window.fetch` to fallback automatically in some cases. If the browser successfully negotiated Native DBSC (which runs at the OS/browser network stack level), you should **not** use the polyfill. Using it while native DBSC is active will accidentally intercept the request and perform a Web Crypto signature, overwriting the session's native registration on the server and downgrading the tier from `dbsc` to `bound`. Always capture an un-patched reference to `window.fetch` before the toolkit loads, and use a check (e.g., `isNative ? unpatchedFetch : window.boundFetch`) before dispatching requests.
+
+## Frequently Asked Questions (FAQ)
+
+### Q: Why does my session start as `tier=dbsc` but immediately downgrade to `tier=bound` when I make an API request?
+**A:** This is the expected fallback behavior when Native DBSC network interception is disabled or failing (commonly due to `localhost`, missing HTTPS, or Chromium flag configurations). 
+
+Here is what happens under the hood:
+1. **Registration**: When you first initialize DBSC, the polyfill successfully uses WebAuthn (Passkeys/TPM) to prove hardware possession to the server, achieving `tier=dbsc`.
+2. **The Challenge**: When you make an API request (e.g. `fetch('/me')`), the server responds with a `403 Forbidden` and a DBSC challenge.
+3. **The Fallback**: If the browser's native network stack is functioning properly, it intercepts the 403 invisibly, signs the challenge, and retries. Because you are likely on `localhost`, the native stack ignores it. The `dbsc-toolkit`'s `boundFetch` wrapper catches the 403 instead.
+4. **The Downgrade**: Because WebAuthn strictly requires a user interaction prompt (like a fingerprint scan) for every signature, the polyfill *cannot* use it transparently for background API requests. Instead, it generates a software Web Crypto key, registers it on the fly, and uses it to sign the request. The server accepts this new software key and updates your active session to `tier=bound`.
+
+### Q: Can I just bypass the polyfill and use the native `fetch` API?
+**A:** If you are developing locally on `localhost` or without fully trusted TLS certificates, **no**. Bypassing `boundFetch` means the `403 Forbidden` challenges will bubble directly up to your application, breaking your API requests. The polyfill is required to intercept and handle these challenges gracefully until your application is deployed to a production environment where Native DBSC network interception is supported.
+
+### Q: How should I represent this state in the UI?
+**A:** Your UI should track both the **hardware capability** (`phase`) discovered during registration, and the **active session security** (`tier`). If the session downgrades to `tier=bound` during a fetch, you should reflect that the *active requests* are software-bound, but you should **not** uncheck your "TPM / Secure Enclave Available" indicators, as the underlying hardware capability is still intact!
