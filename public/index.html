@@ -860,11 +860,12 @@
       out.style.color = "var(--text-muted)";
       out.textContent = "Loading...";
       try {
-        // 3. IMPORTANT: Use boundFetch instead of fetch for guarded routes (UNLESS native DBSC is active)
-        // If the browser handles DBSC natively, using the boundFetch polyfill will mistakenly 
-        // force a Web Crypto fallback registration on the server!
-        const isNative = window.__lastDbscPhase === "native-dbsc" || window.__lastDbscTier === "dbsc";
-        const fetcher = (!isNative && window.boundFetch) ? window.boundFetch : (window.__myFetch || fetch);
+        // 3. IMPORTANT: Use boundFetch instead of fetch for guarded routes
+        // We MUST use the polyfill boundFetch. If we try to bypass it and use the native fetch, 
+        // the browser's native network stack fails to attach the Sec-Session-Response proof 
+        // (because native DBSC fetch interception is often disabled on localhost or self-signed certs),
+        // resulting in a 403 Forbidden. The polyfill is required to intercept the challenge and sign it!
+        const fetcher = window.boundFetch || fetch;
         
         const res = await fetcher("/me", { credentials: "include" });
         const data = await res.json();
@@ -873,11 +874,15 @@
         out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
         
         if (res.ok && data.dbsc) {
-          // Only update the tier from the server response, preserve existing phase if possible
-          // We don't want to accidentally uncheck the TPM hardware capability radio
+          // If the polyfill downgraded the active fetch to 'bound' because we are on localhost,
+          // but the hardware session was successfully registered as 'dbsc', we preserve the 'dbsc' tier visually.
+          const effectiveTier = (data.dbsc.tier === "bound" && window.__lastDbscTier === "dbsc") 
+            ? "dbsc" 
+            : data.dbsc.tier;
+            
           updateBindingStatus({ 
-            phase: window.__lastDbscPhase || (data.dbsc.tier === "dbsc" ? "native-dbsc" : "polyfill-bound"), 
-            tier: data.dbsc.tier 
+            phase: window.__lastDbscPhase || (effectiveTier === "dbsc" ? "native-dbsc" : "polyfill-bound"), 
+            tier: effectiveTier 
           });
         }
       } catch (err) {
