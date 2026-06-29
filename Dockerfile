@@ -9,6 +9,9 @@ RUN npm install
 # Copy application files (including the self-signed cert for demo purposes)
 COPY --chown=node:node . .
 
+# Run migrations during the image build process so it doesn't need to happen on startup
+RUN npx --yes @better-auth/cli migrate -y --config server.js
+
 # Expose port 3000
 EXPOSE 3000
 
