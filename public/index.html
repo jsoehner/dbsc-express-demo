@@ -448,7 +448,7 @@
       </div>
       <div class="tooltip">
         <button class="primary" id="signin-btn" style="background: var(--border);">Sign In</button>
-        <span class="tooltiptext">Logs into an existing account and re-initializes the device binding for this browser.</span>
+        <span class="tooltiptext">Logs into an existing account without initializing device binding. Simulates an unprotected (unbound) session.</span>
       </div>
     </div>
 
@@ -564,36 +564,45 @@
         out.innerHTML += `<div><span style="color:#10b981">✓ Standard session created & cookie received</span></div>`;
         
         await new Promise(r => setTimeout(r, 600));
-        out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 2:</span> Requesting WebCrypto to generate hardware-bound P-256 keypair...</div>`;
+        out.innerHTML += `<div><span style="color:#10b981">✓ Standard session created & cookie received</span></div>`;
         
-        // 2. IMPORTANT: Re-init DBSC so it binds the newly created session
-        if (window.initDbsc) {
-          try {
-            await window.initDbsc();
-            
-            await new Promise(r => setTimeout(r, 800));
-            out.innerHTML += `<div><span style="color:#10b981">✓ Keypair generated in browser</span></div>`;
-            
-            await new Promise(r => setTimeout(r, 600));
-            out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 3:</span> Registering public key with server to bind to session...</div>`;
-            
-            await new Promise(r => setTimeout(r, 800));
-            out.innerHTML += `<div><span style="color:#10b981">✓ Server bound public key! Device is now registered.</span></div>`;
-            
-          } catch (dbscErr) {
-            out.style.color = "#fbbf24"; // warning yellow
-            out.textContent = `Warning: Device binding failed (${dbscErr.message || "Unknown error"}). You are signed in but unprotected.`;
+        if (action === "sign-up") {
+          await new Promise(r => setTimeout(r, 600));
+          out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 2:</span> Requesting WebCrypto to generate hardware-bound P-256 keypair...</div>`;
+          
+          // 2. IMPORTANT: Re-init DBSC so it binds the newly created session
+          if (window.initDbsc) {
+            try {
+              await window.initDbsc();
+              
+              await new Promise(r => setTimeout(r, 800));
+              out.innerHTML += `<div><span style="color:#10b981">✓ Keypair generated in browser</span></div>`;
+              
+              await new Promise(r => setTimeout(r, 600));
+              out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 3:</span> Registering public key with server to bind to session...</div>`;
+              
+              await new Promise(r => setTimeout(r, 800));
+              out.innerHTML += `<div><span style="color:#10b981">✓ Server bound public key! Device is now registered.</span></div>`;
+              
+            } catch (dbscErr) {
+              out.style.color = "#fbbf24"; // warning yellow
+              out.textContent = `Warning: Device binding failed (${dbscErr.message || "Unknown error"}). You are signed in but unprotected.`;
+            }
+          } else {
+            out.style.color = "#fbbf24";
+            out.textContent = "Warning: DBSC SDK not loaded. Proceeding unbound.";
           }
-        } else {
-          out.style.color = "#fbbf24";
-          out.textContent = "Warning: DBSC SDK not loaded. Proceeding unbound.";
         }
         
         setTimeout(() => {
           $("auth-panel").classList.add("hidden");
           $("app-panel").classList.remove("hidden");
           $("app-output").style.color = "var(--text-muted)";
-          $("app-output").textContent = "Device bound successfully. Ready for requests.";
+          if (action === "sign-up") {
+            $("app-output").textContent = "Device bound successfully. Ready for requests.";
+          } else {
+            $("app-output").textContent = "Signed in normally (Unbound session). Ready for requests.";
+          }
           out.classList.remove("flashing");
         }, 2000);
         
@@ -653,21 +662,17 @@
       const out = $("app-output");
       out.classList.add("flashing");
       out.style.color = "var(--text-muted)";
-      out.textContent = "Clearing existing key...";
+      out.textContent = "Clearing existing key and signing out...";
       try {
         if (window.clearBoundKey) {
           await window.clearBoundKey();
         }
-        out.textContent = "Old key cleared. Generating new key and binding...";
         
-        if (window.initDbsc) {
-          await window.initDbsc();
-          out.style.color = "var(--success)";
-          out.textContent = "Successfully removed old binding and generated a new key!";
-        } else {
-          out.style.color = "#fbbf24";
-          out.textContent = "Warning: DBSC SDK not loaded.";
-        }
+        await fetch("/api/auth/sign-out", { method: "POST" });
+        
+        $("auth-panel").classList.remove("hidden");
+        $("app-panel").classList.add("hidden");
+        $("auth-output").innerHTML = `<div style="color:var(--success)">Device binding cleared. You have been signed out. Please sign in again to recertify.</div>`;
       } catch (err) {
         out.style.color = "var(--danger)";
         out.textContent = `Error during recertification: ${err.message}`;
