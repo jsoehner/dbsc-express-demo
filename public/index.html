@@ -854,8 +854,12 @@
       out.style.color = "var(--text-muted)";
       out.textContent = "Loading...";
       try {
-        // 3. IMPORTANT: Use boundFetch instead of fetch for guarded routes
-        const fetcher = window.boundFetch || fetch;
+        // 3. IMPORTANT: Use boundFetch instead of fetch for guarded routes (UNLESS native DBSC is active)
+        // If the browser handles DBSC natively, using the boundFetch polyfill will mistakenly 
+        // force a Web Crypto fallback registration on the server!
+        const isNative = window.__lastDbscPhase === "native-dbsc" || window.__lastDbscPhase === "dbsc";
+        const fetcher = (!isNative && window.boundFetch) ? window.boundFetch : fetch;
+        
         const res = await fetcher("/me", { credentials: "include" });
         const data = await res.json();
         
