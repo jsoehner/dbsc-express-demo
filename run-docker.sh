@@ -51,5 +51,4 @@ echo "--------------------------------------------------------"
 # --rm: Automatically remove the container when it exits
 # -it: Interactive terminal
 # -p: Map port 3000
-# -v: Map certs directly to the files expected by the app
-docker run -v "$(pwd)/certs/server.key:/app/server.key" -v "$(pwd)/certs/server.cert:/app/server.cert" -v "$(pwd)/public:/app/public" -p 3000:3000 --rm $TARGET_IMAGE
+docker run -p 3000:3000 --rm $TARGET_IMAGE
