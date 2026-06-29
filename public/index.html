@@ -218,17 +218,24 @@
       }
       .main-layout {
         display: flex;
+        flex-direction: column;
         gap: 1.5rem;
-        align-items: flex-start;
+        align-items: stretch;
       }
       .controls-column {
-        flex: 0 0 340px;
+        display: flex;
+        gap: 1.5rem;
+        width: 100%;
+      }
+      .controls-column > .card {
+        flex: 1;
+        margin-top: 0 !important;
       }
       .logs-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(4, 1fr);
         gap: 1rem;
-        flex: 1;
+        width: 100%;
         margin-top: 0;
       }
     }
@@ -578,6 +585,7 @@
             TPM / Secure Enclave Available
           </label>
         </div>
+        <div id="dbsc-support-message" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--danger); display: none;"></div>
       </div>
 
       <div class="divider" style="margin: 1rem 0;"></div>
@@ -675,6 +683,14 @@
       } else {
         tpmRadio.checked = false;
         tpmItem.classList.remove("active-success");
+      }
+      
+      if (outcome && outcome.skipReason) {
+        const msg = $("dbsc-support-message");
+        msg.style.display = "block";
+        msg.textContent = `Native DBSC skipped: ${outcome.skipReason}. To force native DBSC support, ensure you are using Chromium 146+ with chrome://flags/#enable-bound-session-credentials enabled.`;
+      } else {
+        $("dbsc-support-message").style.display = "none";
       }
       
       // 2. Check current binding tier
