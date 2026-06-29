@@ -298,6 +298,91 @@
     .log-method { color: #38bdf8; font-weight: 600; }
     .log-url { color: #f8fafc; }
     .log-payload { color: #a78bfa; white-space: pre-wrap; margin-top: 4px; word-break: break-all; }
+
+    /* Status Panel Styles */
+    .status-group {
+      margin-bottom: 1rem;
+    }
+    .status-group:last-child {
+      margin-bottom: 0;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+      margin-bottom: 0.5rem;
+    }
+    .status-item:last-child {
+      margin-bottom: 0;
+    }
+    .status-item input[type="radio"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      margin: 0 0.75rem 0 0;
+      cursor: not-allowed;
+      accent-color: var(--primary);
+    }
+    .status-radio-label {
+      display: flex;
+      align-items: center;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      transition: color 0.3s ease;
+      cursor: default;
+      margin-bottom: 0;
+    }
+    .status-indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #475569;
+      margin-right: 0.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    }
+    /* Lit up / Active states */
+    .status-item.active-success {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .status-item.active-success .status-radio-label {
+      color: var(--text);
+    }
+    .status-item.active-success .status-indicator-dot {
+      background-color: var(--success);
+      box-shadow: 0 0 8px var(--success), 0 0 16px rgba(16, 185, 129, 0.4);
+    }
+    .status-item.active-primary {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .status-item.active-primary .status-radio-label {
+      color: var(--text);
+    }
+    .status-item.active-primary .status-indicator-dot {
+      background-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary), 0 0 16px rgba(59, 130, 246, 0.4);
+    }
+    .status-item.active-warning {
+      border-color: #fbbf24;
+      background: rgba(251, 191, 36, 0.05);
+    }
+    .status-item.active-warning .status-radio-label {
+      color: var(--text);
+    }
+    .status-item.active-warning .status-indicator-dot {
+      background-color: #fbbf24;
+      box-shadow: 0 0 8px #fbbf24, 0 0 16px rgba(251, 191, 36, 0.4);
+    }
+    .status-item input[type="radio"]:disabled {
+      opacity: 0.8;
+      cursor: default;
+    }
   </style>
   <script>
     const $ = id => document.getElementById(id);
@@ -478,6 +563,50 @@
       <div class="output" id="app-output">Waiting for request...</div>
     </div>
 
+    <!-- Status Panel -->
+    <div class="card" id="status-panel" style="margin-top: 1rem;">
+      <h2 style="font-size: 1rem; margin: 0 0 1rem 0; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        🛡️ Security & Binding Status
+      </h2>
+      
+      <div class="status-group">
+        <label>Hardware Capability</label>
+        <div class="status-item">
+          <input type="radio" id="tpm-available-radio" disabled>
+          <label for="tpm-available-radio" class="status-radio-label">
+            <span class="status-indicator-dot"></span>
+            TPM / Secure Enclave Available
+          </label>
+        </div>
+      </div>
+
+      <div class="divider" style="margin: 1rem 0;"></div>
+
+      <div class="status-group">
+        <label>Session Binding Tier</label>
+        
+        <div class="status-item" style="margin-bottom: 0.5rem;">
+          <input type="radio" id="tier-dbsc-radio" name="binding-tier" disabled>
+          <label for="tier-dbsc-radio" class="status-radio-label">
+            <span class="status-indicator-dot"></span>
+            TPM-bound Session (tier=dbsc)
+          </label>
+        </div>
+        
+        <div class="status-item">
+          <input type="radio" id="tier-bound-radio" name="binding-tier" disabled>
+          <label for="tier-bound-radio" class="status-radio-label">
+            <span class="status-indicator-dot"></span>
+            Fallback Session (tier=bound)
+          </label>
+        </div>
+        
+        <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+          Active state: <span id="binding-status-text" style="font-weight: 600; color: var(--text);">Checking...</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Persistent Logs Section -->
@@ -520,6 +649,74 @@
     const deviceLogs = $("device-logs");
     const cryptoLogs = $("crypto-logs");
     const pemBox = $("pem-box");
+
+    async function updateBindingStatus(outcome) {
+      console.log("updateBindingStatus called with:", outcome);
+      
+      // 1. Check TPM / Secure Enclave Availability
+      let tpmAvailable = false;
+      if (window.PublicKeyCredential && window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+        try {
+          tpmAvailable = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        } catch (e) {
+          console.error("Error checking platform authenticator:", e);
+        }
+      }
+      // If native DBSC is active, TPM/Secure Enclave is definitely available and used
+      if (outcome && outcome.phase === "native-dbsc") {
+        tpmAvailable = true;
+      }
+      
+      const tpmRadio = $("tpm-available-radio");
+      const tpmItem = tpmRadio.closest(".status-item");
+      if (tpmAvailable) {
+        tpmRadio.checked = true;
+        tpmItem.classList.add("active-success");
+      } else {
+        tpmRadio.checked = false;
+        tpmItem.classList.remove("active-success");
+      }
+      
+      // 2. Check current binding tier
+      const dbscRadio = $("tier-dbsc-radio");
+      const dbscItem = dbscRadio.closest(".status-item");
+      const boundRadio = $("tier-bound-radio");
+      const boundItem = boundRadio.closest(".status-item");
+      const statusText = $("binding-status-text");
+      
+      // Reset active classes
+      dbscItem.classList.remove("active-primary");
+      boundItem.classList.remove("active-warning");
+      
+      if (!outcome || outcome.phase === "unbound") {
+        dbscRadio.checked = false;
+        boundRadio.checked = false;
+        statusText.textContent = "Unbound (No session / Logged out)";
+        statusText.style.color = "var(--text-muted)";
+      } else if (outcome.phase === "native-dbsc" || outcome.tier === "dbsc") {
+        dbscRadio.checked = true;
+        boundRadio.checked = false;
+        dbscItem.classList.add("active-primary");
+        statusText.textContent = "TPM-bound (tier=dbsc)";
+        statusText.style.color = "var(--primary)";
+      } else if (outcome.phase === "polyfill-bound" || outcome.tier === "bound") {
+        dbscRadio.checked = false;
+        boundRadio.checked = true;
+        boundItem.classList.add("active-warning");
+        statusText.textContent = "Fallback Bound (tier=bound)";
+        statusText.style.color = "#fbbf24";
+      } else if (outcome.phase === "error") {
+        dbscRadio.checked = false;
+        boundRadio.checked = false;
+        statusText.textContent = `Error: ${outcome.error}`;
+        statusText.style.color = "var(--danger)";
+      } else {
+        dbscRadio.checked = false;
+        boundRadio.checked = false;
+        statusText.textContent = `Phase: ${outcome.phase}`;
+        statusText.style.color = "var(--text-muted)";
+      }
+    }
 
     async function handleAuth(action, bindDevice = false) {
       const email = $("email").value;
@@ -574,7 +771,8 @@
           // 2. IMPORTANT: Re-init DBSC so it binds the newly created session
           if (window.initDbsc) {
             try {
-              await window.initDbsc();
+              const outcome = await window.initDbsc();
+              updateBindingStatus(outcome);
               
               await new Promise(r => setTimeout(r, 800));
               out.innerHTML += `<div><span style="color:#10b981">✓ Keypair generated in browser</span></div>`;
@@ -588,11 +786,15 @@
             } catch (dbscErr) {
               out.style.color = "#fbbf24"; // warning yellow
               out.textContent = `Warning: Device binding failed (${dbscErr.message || "Unknown error"}). You are signed in but unprotected.`;
+              updateBindingStatus({ phase: "error", error: dbscErr.message });
             }
           } else {
             out.style.color = "#fbbf24";
             out.textContent = "Warning: DBSC SDK not loaded. Proceeding unbound.";
+            updateBindingStatus({ phase: "unbound" });
           }
+        } else {
+          updateBindingStatus({ phase: "unbound" });
         }
         
         setTimeout(() => {
@@ -623,6 +825,7 @@
       const out = $("app-output");
       out.style.color = "#fbbf24";
       out.textContent = "Local session cookies deleted. You are now unauthenticated but the UI has not refreshed. Try fetching /me to see it fail!";
+      updateBindingStatus({ phase: "unbound" });
     });
 
     $("fetch-btn").addEventListener("click", async () => {
@@ -638,6 +841,10 @@
         
         out.style.color = res.ok ? "var(--success)" : "var(--danger)";
         out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
+        
+        if (res.ok && data.dbsc) {
+          updateBindingStatus({ phase: data.dbsc.tier === "dbsc" ? "native-dbsc" : "polyfill-bound", tier: data.dbsc.tier });
+        }
       } catch (err) {
         out.style.color = "var(--danger)";
         out.textContent = `Error: ${err.message}`;
@@ -682,6 +889,7 @@
         $("auth-panel").classList.remove("hidden");
         $("app-panel").classList.add("hidden");
         $("auth-output").innerHTML = `<div style="color:var(--success)">Device binding cleared. You have been signed out. Please sign in again to recertify.</div>`;
+        updateBindingStatus({ phase: "unbound" });
       } catch (err) {
         out.style.color = "var(--danger)";
         out.textContent = `Error during recertification: ${err.message}`;
@@ -698,7 +906,45 @@
       $("auth-panel").classList.remove("hidden");
       $("app-panel").classList.add("hidden");
       $("auth-output").textContent = "Signed out.";
+      updateBindingStatus({ phase: "unbound" });
     });
+
+    // Probe on page load
+    if (window.__dbscOutcome) {
+      window.__dbscOutcome.then((outcome) => {
+        updateBindingStatus(outcome);
+        // If already bound on page load, switch to app-panel
+        if (outcome.phase === "native-dbsc" || outcome.phase === "polyfill-bound") {
+          $("auth-panel").classList.add("hidden");
+          $("app-panel").classList.remove("hidden");
+          $("app-output").style.color = "var(--text-muted)";
+          $("app-output").textContent = `Session restored (${outcome.tier === 'dbsc' ? 'TPM-bound' : 'Fallback bound'}).`;
+        }
+      }).catch((e) => {
+        console.error("Error with initial DBSC outcome:", e);
+        updateBindingStatus({ phase: "error", error: e.message });
+      });
+    } else {
+      // Setup listener or fallback
+      setTimeout(async () => {
+        if (window.__dbscOutcome) {
+          try {
+            const outcome = await window.__dbscOutcome;
+            updateBindingStatus(outcome);
+            if (outcome.phase === "native-dbsc" || outcome.phase === "polyfill-bound") {
+              $("auth-panel").classList.add("hidden");
+              $("app-panel").classList.remove("hidden");
+              $("app-output").style.color = "var(--text-muted)";
+              $("app-output").textContent = `Session restored (${outcome.tier === 'dbsc' ? 'TPM-bound' : 'Fallback bound'}).`;
+            }
+          } catch (e) {
+            updateBindingStatus({ phase: "error", error: e.message });
+          }
+        } else {
+          updateBindingStatus({ phase: "unbound" });
+        }
+      }, 500);
+    }
   </script>
 </body>
 </html>
