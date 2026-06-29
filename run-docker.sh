@@ -29,12 +29,10 @@ else
     exit 1
 fi
 
-# Check if certs directory exists
-if [ ! -d "certs" ]; then
-    echo "🔐 Generating localhost certificates in 'certs' directory..."
-    mkdir certs
-    openssl req -nodes -new -x509 -keyout certs/server.key -out certs/server.cert -days 365 -subj "/CN=localhost"
-fi
+echo "🔐 Removing existing certificates and generating new ones..."
+rm -rf certs
+mkdir certs
+openssl req -nodes -new -x509 -keyout certs/server.key -out certs/server.cert -days 365 -subj "/CN=localhost"
 
 if [ "$1" != "local" ]; then
     echo "🚀 Pulling latest image from $TARGET_IMAGE..."
