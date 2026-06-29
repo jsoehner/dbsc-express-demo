@@ -661,6 +661,10 @@
     async function updateBindingStatus(outcome) {
       console.log("updateBindingStatus called with:", outcome);
       
+      if (outcome && outcome.phase) {
+        window.__lastDbscPhase = outcome.phase;
+      }
+      
       // 1. Check TPM / Secure Enclave Availability
       let tpmAvailable = false;
       if (window.PublicKeyCredential && window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
@@ -859,7 +863,12 @@
         out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
         
         if (res.ok && data.dbsc) {
-          updateBindingStatus({ phase: data.dbsc.tier === "dbsc" ? "native-dbsc" : "polyfill-bound", tier: data.dbsc.tier });
+          // Only update the tier from the server response, preserve existing phase if possible
+          // We don't want to accidentally uncheck the TPM hardware capability radio
+          updateBindingStatus({ 
+            phase: window.__lastDbscPhase || (data.dbsc.tier === "dbsc" ? "native-dbsc" : "polyfill-bound"), 
+            tier: data.dbsc.tier 
+          });
         }
       } catch (err) {
         out.style.color = "var(--danger)";
