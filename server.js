@@ -71,15 +71,17 @@ app.get("/me", requireProof(), (req, res) => {
   res.json({ message: "Protected route accessed", dbsc: res.locals.dbsc || null });
 });
 
-// Start HTTPS server
-const keyPath = fs.existsSync("certs/server.key") ? "certs/server.key" : "server.key";
-const certPath = fs.existsSync("certs/server.cert") ? "certs/server.cert" : "server.cert";
-const options = {
-  key: fs.readFileSync(keyPath),
-  cert: fs.readFileSync(certPath)
-};
+// Start HTTPS server only if not running migrations
+if (!process.env.MIGRATION) {
+  const keyPath = fs.existsSync("certs/server.key") ? "certs/server.key" : "server.key";
+  const certPath = fs.existsSync("certs/server.cert") ? "certs/server.cert" : "server.cert";
+  const options = {
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
+  };
 
-https.createServer(options, app).listen(3000, () => {
-  console.log("DBSC demo running on https://localhost:3000");
-  console.log("NOTE: You will need to accept the self-signed certificate warning in your browser.");
-});
+  https.createServer(options, app).listen(3000, () => {
+    console.log("DBSC demo running on https://localhost:3000");
+    console.log("NOTE: You will need to accept the self-signed certificate warning in your browser.");
+  });
+}
