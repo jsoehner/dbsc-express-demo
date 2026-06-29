@@ -513,6 +513,9 @@
 
       return originalFetch.apply(this, args);
     };
+    
+    // Save a reference to our intercepted fetch BEFORE the dbsc-toolkit loads and monkey-patches it
+    window.__myFetch = window.fetch;
   </script>
 
   <!-- 1. The DBSC init shim -->
@@ -663,6 +666,9 @@
       
       if (outcome && outcome.phase) {
         window.__lastDbscPhase = outcome.phase;
+      }
+      if (outcome && outcome.tier) {
+        window.__lastDbscTier = outcome.tier;
       }
       
       // 1. Check TPM / Secure Enclave Availability
@@ -857,8 +863,8 @@
         // 3. IMPORTANT: Use boundFetch instead of fetch for guarded routes (UNLESS native DBSC is active)
         // If the browser handles DBSC natively, using the boundFetch polyfill will mistakenly 
         // force a Web Crypto fallback registration on the server!
-        const isNative = window.__lastDbscPhase === "native-dbsc" || window.__lastDbscPhase === "dbsc";
-        const fetcher = (!isNative && window.boundFetch) ? window.boundFetch : fetch;
+        const isNative = window.__lastDbscPhase === "native-dbsc" || window.__lastDbscTier === "dbsc";
+        const fetcher = (!isNative && window.boundFetch) ? window.boundFetch : (window.__myFetch || fetch);
         
         const res = await fetcher("/me", { credentials: "include" });
         const data = await res.json();
