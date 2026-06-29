@@ -693,13 +693,13 @@
         boundRadio.checked = false;
         statusText.textContent = "Unbound (No session / Logged out)";
         statusText.style.color = "var(--text-muted)";
-      } else if (outcome.phase === "native-dbsc" || outcome.tier === "dbsc") {
+      } else if (outcome.tier === "dbsc") {
         dbscRadio.checked = true;
         boundRadio.checked = false;
         dbscItem.classList.add("active-primary");
         statusText.textContent = "TPM-bound (tier=dbsc)";
         statusText.style.color = "var(--primary)";
-      } else if (outcome.phase === "polyfill-bound" || outcome.tier === "bound") {
+      } else if (outcome.tier === "bound" || outcome.phase === "polyfill-bound") {
         dbscRadio.checked = false;
         boundRadio.checked = true;
         boundItem.classList.add("active-warning");
