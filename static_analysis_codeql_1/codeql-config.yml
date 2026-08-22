@@ -1,0 +1,12 @@
+paths-ignore:
+  - "node_modules/**"
+  - "vendor/**"
+  - "venv/**"
+  - "public/**"
+  - "build/**"
+  - "dist/**"
+  - ".git/**"
+  - ".vscode/**"
+  - ".idea/**"
+  - "coverage/**"
+  - "test-results/**"

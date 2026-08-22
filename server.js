@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import { betterAuth } from "better-auth";
+import { MemoryReplayCache } from "dbsc-toolkit/dist/storage/memory/replay-cache";
 import Database from "better-sqlite3";
 import { dbsc } from "@dbsc-toolkit/better-auth";
 import { dbsc as dbscMiddleware, requireProof } from "dbsc-toolkit/express";
@@ -8,7 +9,6 @@ import { createBetterAuthStorageAdapter } from "@dbsc-toolkit/better-auth/intern
 import { toNodeHandler } from "better-auth/node";
 import path from "node:path";
 import { createRequire } from "node:module";
-import https from "https";
 import fs from "fs";
 
 const require = createRequire(import.meta.url);
@@ -23,7 +23,7 @@ const db = new Database("db.sqlite");
 
 // Initialize Better Auth with DBSC plugin
 export const auth = betterAuth({
-  baseURL: "https://localhost:3000",
+  baseURL: "http://localhost:3000",
   database: db,
   emailAndPassword: { enabled: true },
   session: {
@@ -31,7 +31,7 @@ export const auth = betterAuth({
       enabled: true,
     },
     cookie: {
-      secure: true,
+      secure: false, // Set to false for local HTTP testing
     },
   },
   plugins: [dbsc({
@@ -55,33 +55,29 @@ storage.getSession = async function(reqOrId) {
   return sess;
 };
 
+const replayCache = new MemoryReplayCache();
+
 // Apply DBSC middleware
-// Reads the bound cookie + sets the per-request tier on res.locals.dbsc
 app.use(dbscMiddleware({ storage }));
 
-// Mount Better Auth API routes (this also mounts /api/auth/dbsc/* routes)
+// Mount Better Auth API routes
 app.use("/api/auth", toNodeHandler(auth));
 
 // Serve the polyfill SDK for the client
 const clientDir = path.join(path.dirname(require.resolve("dbsc-toolkit/package.json")), "dist", "client");
 app.use("/dbsc-client", express.static(clientDir));
 
-// Guard routes that require device-bound proof using requireProof()
-app.get("/me", requireProof(), (req, res) => {
+// Guard routes that require device-bound proof
+app.get("/me", requireProof({ 
+  replayCache, 
+  timestampWindowMs: 30000 
+}), (req, res) => {
   res.json({ message: "Protected route accessed", dbsc: res.locals.dbsc || null });
 });
 
-// Start HTTPS server only if not running migrations
+// Start HTTP server for verification
 if (!process.env.MIGRATION) {
-  const keyPath = fs.existsSync("certs/server.key") ? "certs/server.key" : "server.key";
-  const certPath = fs.existsSync("certs/server.cert") ? "certs/server.cert" : "server.cert";
-  const options = {
-    key: fs.readFileSync(keyPath),
-    cert: fs.readFileSync(certPath)
-  };
-
-  https.createServer(options, app).listen(3000, () => {
-    console.log("DBSC demo running on https://localhost:3000");
-    console.log("NOTE: You will need to accept the self-signed certificate warning in your browser.");
+  app.listen(3000, () => {
+    console.log("DBSC demo running on http://localhost:3000");
   });
 }

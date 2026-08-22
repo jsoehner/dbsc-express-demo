@@ -4,3 +4,5 @@ database.db
 .env
 server.cert
 server.key
+piolium/*
+!piolium/findings/
