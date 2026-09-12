@@ -15,18 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af6837
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-
-      - name: Set up Node.js 24
-
-        uses: actions/setup-node@v6
-
-        with:
-
-          node-version: '24'
-
 
       - name: Configure Git for automated commits
         run: |
@@ -34,7 +25,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24'
           cache: 'npm'
@@ -53,14 +44,31 @@ jobs:
           git rm -r --cached dist coverage node_modules || true
           git status --short
 
+      - name: Determine PR Token
+        id: pr-token
+        env:
+          PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          if [ -n "$PAT" ]; then
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $PAT" https://api.github.com/user || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "Using verified PERSONAL_ACCESS_TOKEN"
+              TOKEN="$PAT"
+            else
+              echo "PERSONAL_ACCESS_TOKEN is invalid or expired (HTTP $STATUS), falling back to GITHUB_TOKEN"
+            fi
+          else
+            echo "PERSONAL_ACCESS_TOKEN not set, using GITHUB_TOKEN"
+          fi
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
       - name: Create Pull Request
         id: create-pr
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         continue-on-error: true
-        env:
-          PR_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
-          token: ${{ env.PR_TOKEN || github.token }}
+          token: ${{ steps.pr-token.outputs.token }}
           commit-message: "chore(deps): update project dependencies"
           title: "Automated Dependency Update"
           body: |
@@ -74,17 +82,33 @@ jobs:
 
       - name: Notify manual PR approval needed
         if: ${{ always() && steps.create-pr.outcome == 'failure' }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+
+            // Check if an issue with the same title is already open to avoid duplicates
+            const existing = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              labels: 'dependency-update'
+            });
+
+            const issueTitle = 'Automated dependency branch ready for manual PR';
+            const alreadyExists = existing.data.some(issue => issue.title === issueTitle);
+            if (alreadyExists) {
+              console.log('An issue for manual PR notification is already open. Skipping duplicate.');
+              return;
+            }
+
             await github.rest.issues.create({
               owner,
               repo,
-              title: 'Automated dependency branch ready for manual PR',
-              body: `The automated dependency branch passed build verification but PR creation was blocked by repository policy.\n\nBranch: https://github.com/${owner}/${repo}/tree/automated/dependency-updates\n\nRequested reviewer: @jsoehner`,
+              title: issueTitle,
+              body: `The automated dependency branch passed build verification but PR creation failed.\n\nBranch: https://github.com/${owner}/${repo}/tree/automated/dependency-updates\n\nRequested reviewer: @jsoehner`,
               assignees: ['jsoehner'],
               labels: ['dependency-update']
             });
