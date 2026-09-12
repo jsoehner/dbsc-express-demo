@@ -1,6 +1,25 @@
+# Dependencies
 node_modules/
+dist/
+
+# Secrets & Certificates
+certs/
+*.key
+*.cert
+*.pem
+
+# Databases
 db.sqlite
-database.db
+
+# Environment
 .env
-server.cert
-server.key
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+```
+
+# Keys
+certs/server.key
+certs/server.cert

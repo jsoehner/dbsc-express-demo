@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af6837
         with:
           fetch-depth: 0
 
@@ -74,7 +74,7 @@ jobs:
 
       - name: Notify manual PR approval needed
         if: ${{ always() && steps.create-pr.outcome == 'failure' }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
