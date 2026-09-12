@@ -1,5 +1,5 @@
 # --- Builder Stage ---
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ RUN openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 
 RUN MIGRATION=1 npx --yes @better-auth/cli migrate -y --config server.js
 
 # --- Runner Stage ---
-FROM node:24-alpine AS runner
+FROM node:26-alpine AS runner
 
 WORKDIR /app
 
