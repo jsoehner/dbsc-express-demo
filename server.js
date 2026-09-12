@@ -29,7 +29,7 @@ app.use(helmet());
 
 // Apply CORS restrictions
 app.use(cors({
-  origin: process.env.BASE_URL || "http://localhost:3000",
+  origin: process.env.BASE_URL || "https://localhost:3000",
   credentials: true
 }));
 
@@ -48,6 +48,7 @@ app.use(express.static("public"));
 
 // Initialize SQLite database
 const db = new Database("db.sqlite");
+db.pragma("journal_mode = WAL");
 
 // Set up periodic session cleanup for GDPR compliance / Data Retention
 // Better Auth handles basic expiration on-access, but this actively purges the database.
@@ -71,7 +72,7 @@ setInterval(() => {
 
 // Initialize Better Auth with DBSC plugin
 export const auth = betterAuth({
-  baseURL: process.env.BASE_URL || "http://localhost:3000",
+  baseURL: process.env.BASE_URL || "https://localhost:3000",
   database: db,
   emailAndPassword: { enabled: true },
   session: {
@@ -79,7 +80,7 @@ export const auth = betterAuth({
       enabled: true,
     },
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" || !process.env.HTTP_ONLY,
     },
   },
   databaseHooks: {

@@ -1,3 +1,9 @@
+# OS & Editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
 # Dependencies
 node_modules/
 dist/
@@ -10,6 +16,13 @@ certs/
 
 # Databases
 db.sqlite
+database.db
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.db-journal
 
 # Environment
 .env
@@ -18,8 +31,11 @@ db.sqlite
 # Logs
 npm-debug.log*
 yarn-error.log*
-```
+*.log
 
-# Keys
-certs/server.key
-certs/server.cert
+# Security Audit Artifacts
+piolium/
+coverage/
+findings-table.md
+semgrep-results.json
+trivy-results.json
