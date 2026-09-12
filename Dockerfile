@@ -13,6 +13,12 @@ RUN npm ci
 # Copy application files needed for certs/migrations
 COPY . .
 
+# Create a data directory and set permissions
+RUN mkdir -p /data && chown node:node /data
+
+# Set the database URL for the build process
+ENV DATABASE_URL=/data/db.sqlite
+
 # Generate localhost certs inside the builder
 RUN openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -subj "/CN=localhost"
 
@@ -27,6 +33,9 @@ WORKDIR /app
 # Set ownership of the working directory
 RUN chown node:node /app
 
+# Create data directory for the runner
+RUN mkdir -p /data && chown node:node /data
+
 # Switch to the non-root user early
 USER node
 
@@ -34,10 +43,10 @@ USER node
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node --from=builder /app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /app/public ./public
-COPY --chown=node:node --from=builder /app/server.js ./
-COPY --chown=node:node --from=builder /app/server.cert ./
-COPY --chown=node:node --from=builder /app/server.key ./
-COPY --chown=node:node --from=builder /app/db.sqlite ./
+COPY --chown=node:node --from=builder /app/server.js ./server.js
+COPY --chown=node:node --from=builder /app/server.cert ./server.cert
+COPY --chown=node:node --from=builder /app/server.key ./server.key
+COPY --chown=node:node --from=builder /app/db.sqlite ./db.sqlite
 
 # Expose port 3000
 EXPOSE 3000

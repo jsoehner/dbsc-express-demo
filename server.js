@@ -46,8 +46,8 @@ app.use(express.json({ limit: '10kb' })); // Limit JSON payload size
 app.use(cookieParser());
 app.use(express.static("public"));
 
-// Initialize SQLite database
-const db = new Database("db.sqlite");
+const dbPath = process.env.DATABASE_URL || "db.sqlite";
+const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
 
 // Set up periodic session cleanup for GDPR compliance / Data Retention
@@ -119,6 +119,8 @@ storage.getSession = async function(reqOrId) {
   return sess;
 };
 
+const replayCache = new MemoryReplayCache();
+
 // Apply DBSC middleware
 // Reads the bound cookie + sets the per-request tier on res.locals.dbsc
 app.use(dbscMiddleware({ storage }));
@@ -146,9 +148,14 @@ app.get("/me", requireProof(), (req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  req.log.error({ err }, "Unhandled exception");
+  console.error(err);
+  const isProduction = process.env.NODE_ENV === "production";
+  
   res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === "production" ? "Internal Server Error" : err.message
+    error: isProduction ? "Internal Server Error" : err.message,
+    requestId: req.headers["x-request-id"] || "n/a",
+    // Only include stack trace in non-production environments
+    stack: isProduction ? undefined : err.stack,
   });
 });
 
