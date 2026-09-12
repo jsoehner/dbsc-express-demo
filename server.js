@@ -13,10 +13,16 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import https from "https";
 import fs from "fs";
+import pino from "pino";
+import pinoHttp from "pino-http";
 
 const require = createRequire(import.meta.url);
 
+const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const app = express();
+
+// Set up structured logging for HTTP requests
+app.use(pinoHttp({ logger }));
 
 // Apply security headers
 app.use(helmet());
@@ -43,6 +49,26 @@ app.use(express.static("public"));
 // Initialize SQLite database
 const db = new Database("db.sqlite");
 
+// Set up periodic session cleanup for GDPR compliance / Data Retention
+// Better Auth handles basic expiration on-access, but this actively purges the database.
+setInterval(() => {
+  try {
+    const cutoff = Math.floor(Date.now() / 1000);
+    // Adjust if Better Auth stores expiresAt as ISO text instead of integer
+    const stmt = db.prepare("DELETE FROM session WHERE expiresAt < ?");
+    const info = stmt.run(new Date().toISOString()); 
+    // Fallback if it's integer timestamp:
+    const stmtInt = db.prepare("DELETE FROM session WHERE CAST(expiresAt AS INTEGER) < ? AND CAST(expiresAt AS INTEGER) > 0");
+    stmtInt.run(cutoff);
+    
+    if (info.changes > 0) {
+      logger.info({ event: "session_cleanup", purged: info.changes });
+    }
+  } catch (err) {
+    logger.error({ err }, "Failed to clean up expired sessions");
+  }
+}, 1000 * 60 * 60); // Run every hour
+
 // Initialize Better Auth with DBSC plugin
 export const auth = betterAuth({
   baseURL: process.env.BASE_URL || "http://localhost:3000",
@@ -55,6 +81,21 @@ export const auth = betterAuth({
     cookie: {
       secure: process.env.NODE_ENV === "production",
     },
+  },
+  databaseHooks: {
+    session: {
+      create: async (session) => {
+        logger.info({ event: "session_created", userId: session.userId, sessionId: session.id });
+      },
+      delete: async (session) => {
+        logger.info({ event: "session_deleted", sessionId: session.id });
+      }
+    },
+    user: {
+      create: async (user) => {
+        logger.info({ event: "user_registered", userId: user.id });
+      }
+    }
   },
   plugins: [dbsc({
     onEvent: (evt) => {
@@ -81,6 +122,15 @@ storage.getSession = async function(reqOrId) {
 // Reads the bound cookie + sets the per-request tier on res.locals.dbsc
 app.use(dbscMiddleware({ storage }));
 
+// Apply specific rate limiting for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 20, // Limit each IP to 20 requests per 5 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api/auth", authLimiter);
+
 // Mount Better Auth API routes (this also mounts /api/auth/dbsc/* routes)
 app.use("/api/auth", toNodeHandler(auth));
 
@@ -91,6 +141,14 @@ app.use("/dbsc-client", express.static(clientDir));
 // Guard routes that require device-bound proof using requireProof()
 app.get("/me", requireProof(), (req, res) => {
   res.json({ message: "Protected route accessed", dbsc: res.locals.dbsc || null });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  req.log.error({ err }, "Unhandled exception");
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === "production" ? "Internal Server Error" : err.message
+  });
 });
 
 // Start HTTPS server only if not running migrations
