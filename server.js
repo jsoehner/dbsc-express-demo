@@ -153,8 +153,10 @@ app.use((err, req, res, next) => {
 
 // Start HTTPS server only if not running migrations
 if (!process.env.MIGRATION) {
-  const keyPath = path.resolve(process.env.HTTPS_KEY_PATH || "certs/server.key");
-  const certPath = path.resolve(process.env.HTTPS_CERT_PATH || "certs/server.cert");
+  const defaultKey = fs.existsSync("certs/server.key") ? "certs/server.key" : "server.key";
+  const defaultCert = fs.existsSync("certs/server.cert") ? "certs/server.cert" : "server.cert";
+  const keyPath = path.resolve(process.env.HTTPS_KEY_PATH || defaultKey);
+  const certPath = path.resolve(process.env.HTTPS_CERT_PATH || defaultCert);
 
   if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
     console.error(`❌ SSL Certificates not found. Please provide HTTPS_KEY_PATH and HTTPS_CERT_PATH or place certs in certs/`);
