@@ -78,7 +78,7 @@ jobs:
           delete-branch: true
           assignees: "jsoehner"
           reviewers: "jsoehner"
-          labels: "automated-dependency-update"
+          labels: "dependency-update"
 
       - name: Notify manual PR approval needed
         if: ${{ always() && steps.create-pr.outcome == 'failure' }}
