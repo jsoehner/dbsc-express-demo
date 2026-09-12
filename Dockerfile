@@ -8,7 +8,7 @@ RUN apk add --no-cache openssl
 
 # Copy package files and install all dependencies (including dev)
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 # Copy application files needed for certs/migrations
 COPY . .
@@ -44,4 +44,4 @@ EXPOSE 3000
 
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
