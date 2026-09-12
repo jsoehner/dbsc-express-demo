@@ -77,7 +77,6 @@ jobs:
           branch: "automated/dependency-updates"
           delete-branch: true
           assignees: "jsoehner"
-          reviewers: "jsoehner"
           labels: "dependency-update"
 
       - name: Notify manual PR approval needed
