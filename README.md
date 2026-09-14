@@ -69,3 +69,6 @@ We maintain a set of architectural decisions in the `adr/` directory. These docu
 ## Architectural Decision Records (ADRs)
 
 We maintain a set of architectural decisions in the `adr/` directory. These documents record the "why" behind key design choices, trade-offs, and implementation details.
+
+*   **ADR 0001**: Fix `ReferenceError` for `MemoryReplayCache` in `server.js`.
+*   **ADR 0002**: Switch to Debian-based Node.js images in Docker.

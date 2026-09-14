@@ -15,7 +15,6 @@ import https from "https";
 import fs from "fs";
 import pino from "pino";
 import pinoHttp from "pino-http";
-import { MemoryReplayCache } from "dbsc-toolkit/storage/memory";
 
 const require = createRequire(import.meta.url);
 
@@ -119,8 +118,6 @@ storage.getSession = async function(reqOrId) {
   console.log("getSession returned:", sess);
   return sess;
 };
-
-const replayCache = new MemoryReplayCache();
 
 // Apply DBSC middleware
 // Reads the bound cookie + sets the per-request tier on res.locals.dbsc
