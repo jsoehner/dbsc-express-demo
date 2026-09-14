@@ -13,7 +13,7 @@
   "dependencies": {
     "@dbsc-toolkit/better-auth": "^1.2.2",
     "better-auth": "^1.7.4",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dbsc-toolkit": "^2.14.1",
