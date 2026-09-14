@@ -72,3 +72,4 @@ We maintain a set of architectural decisions in the `adr/` directory. These docu
 
 *   **ADR 0001**: Fix `ReferenceError` for `MemoryReplayCache` in `server.js`.
 *   **ADR 0002**: Switch to Debian-based Node.js images in Docker.
+*   **ADR 0003**: Standardize Data Directory within Application Workdir in Docker.

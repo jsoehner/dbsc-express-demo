@@ -11,10 +11,10 @@ RUN npm ci
 COPY . .
 
 # Create a data directory and set permissions
-RUN mkdir -p /data && chown node:node /data
+RUN mkdir -p data && chown node:node data
 
 # Set the database URL for the build process
-ENV DATABASE_URL=/data/db.sqlite
+ENV DATABASE_URL=./data/db.sqlite
 
 # Generate localhost certs inside the builder
 RUN openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -subj "/CN=localhost"
@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 RUN chown node:node /app
 
 # Create data directory for the runner
-RUN mkdir -p /data && chown node:node /data
+RUN mkdir -p data && chown node:node data
 
 # Switch to the non-root user early
 USER node
@@ -49,7 +49,7 @@ COPY --chown=node:node --from=builder /app/server.key ./server.key
 COPY --chown=node:node --from=builder /app/data/db.sqlite ./data/db.sqlite
 
 # Set the database URL for the runner
-ENV DATABASE_URL=/data/db.sqlite
+ENV DATABASE_URL=./data/db.sqlite
 
 # Expose port 3000
 EXPOSE 3000
