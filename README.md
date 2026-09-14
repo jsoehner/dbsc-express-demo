@@ -62,4 +62,10 @@ Here is what happens under the hood:
 **A:** If you are developing locally on `localhost` or without fully trusted TLS certificates, **no**. Bypassing `boundFetch` means the `403 Forbidden` challenges will bubble directly up to your application, breaking your API requests. The polyfill is required to intercept and handle these challenges gracefully until your application is deployed to a production environment where Native DBSC network interception is supported.
 
 ### Q: How should I represent this state in the UI?
-**A:** Your UI should track both the **hardware capability** (`phase`) discovered during registration, and the **active session security** (`tier`). If the session downgrades to `tier=bound` during a fetch, you should reflect that the *active requests* are software-bound, but you should **not** uncheck your "TPM / Secure Enclave Available" indicators, as the underlying hardware capability is still intact!
+**A:** Your UI should track both the **hardware capability** (`phase`) discovered during registration, and the **active session security** (`tier`). If the session downgrades to `tier=bound` during a fetch, you should reflect that the *active requests* are software-bound, but you should **not** uncheck your "TPM / Secure Enclave Available" indicators, as the underlying hardware capability is still intact## Architectural Decision Records (ADRs)
+
+We maintain a set of architectural decisions in the `adr/` directory. These documents record the "why" behind key design choices, trade-offs, and implementation details.\n
+
+## Architectural Decision Records (ADRs)
+
+We maintain a set of architectural decisions in the `adr/` directory. These documents record the "why" behind key design choices, trade-offs, and implementation details.
