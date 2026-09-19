@@ -1,7 +1,10 @@
-# ADR 0001: Fix ReferenceError for MemoryReplayCache in server.js
+# ADR 0002: Fix ReferenceError for MemoryReplayCache in server.js
 
 ## Status
 Accepted
+
+## Date
+2026-09-14
 
 ## Context
 During the Docker build process, the GitHub Actions workflow failed because the `better-auth` migration step tried to execute `server.js`. `server.js` contained a reference to `MemoryReplayCache` which was not imported, leading to a `ReferenceError`.

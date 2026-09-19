@@ -62,11 +62,19 @@ Here is what happens under the hood:
 **A:** If you are developing locally on `localhost` or without fully trusted TLS certificates, **no**. Bypassing `boundFetch` means the `403 Forbidden` challenges will bubble directly up to your application, breaking your API requests. The polyfill is required to intercept and handle these challenges gracefully until your application is deployed to a production environment where Native DBSC network interception is supported.
 
 ### Q: How should I represent this state in the UI?
-**A:** Your UI should track both the **hardware capability** (`phase`) discovered during registration, and the **active session security** (`tier`). If the session downgrades to `tier=bound` during a fetch, you should reflect that the *active requests* are software-bound, but you should **not** uncheck your "TPM / Secure Enclave Available" indicators, as the underlying hardware capability is still intact## Architectural Decision Records (ADRs)
+**A:** Your UI should track both the **hardware capability** (`phase`) discovered during registration, and the **active session security** (`tier`). If the session downgrades to `tier=bound` during a fetch, you should reflect that the *active requests* are software-bound, but you should **not** uncheck your "TPM / Secure Enclave Available" indicators, as the underlying hardware capability is still intact!
 
-We maintain a set of architectural decisions in the `adr/` directory. These documents record the "why" behind key design choices, trade-offs, and implementation details.\n
+## Architectural Decision Records (ADRs)
 
-## Security Audit Summary\n\nA comprehensive security pipeline was executed on this project, covering Threat Modeling (STRIDE), Vulnerability Scanning, and Compliance Verification.\n\n- **Vulnerabilities**: 0 CVEs detected.\n- **Security Posture**: Verified as high-security with hardware-bound session credentials (DBSC), TLS, and robust rate-limiting.\n- **Compliance**: Meets core requirements for session security and data retention.
+We maintain Architectural Decision Records in the [`docs/adr/`](docs/adr/) directory to document the rationale, context, and consequences of significant technical and security design choices:
+
+*   **[ADR 0000](docs/adr/0000-record-architecture-decisions.md)**: Record Architecture Decisions
+*   **[ADR 0001](docs/adr/0001-security-baseline.md)**: Security Baseline & Governance
+*   **[ADR 0002](docs/adr/0002-fix-memory-replay-cache-import.md)**: Fix `ReferenceError` for `MemoryReplayCache` in `server.js`
+*   **[ADR 0003](docs/adr/0003-switch-to-debian-based-node-images.md)**: Switch to Debian-based Node.js images in Docker
+*   **[ADR 0004](docs/adr/0004-standardize-data-directory-in-docker.md)**: Standardize Data Directory within Application Workdir in Docker
+*   **[ADR 0005](docs/adr/0005-security-testing-workflow-hardening.md)**: Security Testing Workflow Hardening and Reporting-Mode Trivy Scanning
+*   **[ADR 0006](docs/adr/0006-security-pipeline-audit-results.md)**: Security Pipeline Audit Results
 
 ## Security Audit Summary
 

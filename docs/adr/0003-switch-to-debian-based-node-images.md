@@ -1,7 +1,10 @@
-# ADR 0002: Switch to Debian-based Node.js images in Docker
+# ADR 0003: Switch to Debian-based Node.js images in Docker
 
 ## Status
 Accepted
+
+## Date
+2026-09-14
 
 ## Context
 The project was experiencing build failures in the GitHub Actions workflow during the `npm ci` step in the Docker build process. The error was caused by incompatibility between the `node:26-alpine` image (which uses `musl`) and the native compilation requirements of the `better-sqlite3` library.

@@ -1,4 +1,4 @@
-# ADR 0002: Security Testing Workflow Hardening and Reporting-Mode Trivy Scanning
+# ADR 0005: Security Testing Workflow Hardening and Reporting-Mode Trivy Scanning
 
 * **Status:** Accepted
 * **Deciders:** DBSC Express Demo Engineering & Security Team

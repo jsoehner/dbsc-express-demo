@@ -1,7 +1,10 @@
-# ADR-0001: Security Baseline & Governance
+# ADR 0001: Security Baseline & Governance
 
 ## Status
-Proposed
+Accepted
+
+## Date
+2024-05-22
 
 ## Context
 The project is a SQL query builder implementation using Kysely and Zod. To ensure production readiness, we need to establish a security governance framework that includes threat modeling, automated scanning, and documented security decisions.

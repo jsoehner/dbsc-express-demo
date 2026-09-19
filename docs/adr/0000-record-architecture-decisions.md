@@ -1,4 +1,4 @@
-# 0. Record Architecture Decisions
+# ADR 0000: Record Architecture Decisions
 
 - **Status**: Accepted
 - **Date**: 2024-05-23

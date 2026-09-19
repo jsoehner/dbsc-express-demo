@@ -1,7 +1,10 @@
-# ADR 0004: Security Pipeline Audit Results
+# ADR 0006: Security Pipeline Audit Results
 
 ## Status
 Accepted
+
+## Date
+2026-09-19
 
 ## Context
 A full security pipeline was executed on the `dbsc-express-demo` project to evaluate its defense-in-depth posture. The pipeline included Threat Modeling (STRIDE), Requirement Extraction, Mitigation Mapping, SAST/Dependency Scanning, Hardening, and Compliance Verification.

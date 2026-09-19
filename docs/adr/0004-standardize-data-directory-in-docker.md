@@ -1,7 +1,10 @@
-# ADR 0003: Standardize Data Directory within Application Workdir in Docker
+# ADR 0004: Standardize Data Directory within Application Workdir in Docker
 
 ## Status
 Accepted
+
+## Date
+2026-09-15
 
 ## Context
 The Docker build was failing with a `not found` error during the `COPY` step because the database was being created in a root-level directory (`/data`) while the build process was looking for it within the application workdir (`/app/data`). This mismatch caused the cache key calculation to fail.
