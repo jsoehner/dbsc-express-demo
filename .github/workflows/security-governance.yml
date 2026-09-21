@@ -57,7 +57,7 @@ jobs:
             --sarif --output=/src/semgrep-results.sarif || true
 
       - name: Upload Semgrep SARIF to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@9f452fad0f9ce6172a69b8e024ac62b9bf057c0e
         if: always()
         with:
           sarif_file: semgrep-results.sarif
@@ -83,7 +83,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy SARIF to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@9f452fad0f9ce6172a69b8e024ac62b9bf057c0e
         if: always()
         with:
           sarif_file: trivy-results.sarif
