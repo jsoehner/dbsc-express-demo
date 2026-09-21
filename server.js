@@ -1,3 +1,4 @@
+import fs from "fs";
 import express from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
@@ -12,14 +13,24 @@ import { toNodeHandler } from "better-auth/node";
 import path from "node:path";
 import { createRequire } from "node:module";
 import https from "https";
-import fs from "fs";
 import pino from "pino";
 import pinoHttp from "pino-http";
 
 const require = createRequire(import.meta.url);
 
+const logStream = fs.createWriteStream("logs/security.log", { flags: "a" });
+const securityLogger = pino({
+  level: "info",
+  stream: logStream
+});
+
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const app = express();
+
+// Security Logger for auth events
+const logAuthEvent = (event) => {
+  securityLogger.info({ ...event, timestamp: new Date().toISOString() });
+};
 
 // Set up structured logging for HTTP requests
 app.use(pinoHttp({ logger }));
@@ -62,8 +73,8 @@ setInterval(() => {
     const stmtInt = db.prepare("DELETE FROM session WHERE CAST(expiresAt AS INTEGER) < ? AND CAST(expiresAt AS INTEGER) > 0");
     stmtInt.run(cutoff);
     
-    if (info.changes > 0) {
-      logger.info({ event: "session_cleanup", purged: info.changes });
+    if (info && info.changes > 0) {
+      logAuthEvent({ event: "session_cleanup", purged: info.changes });
     }
   } catch (err) {
     logger.error({ err }, "Failed to clean up expired sessions");
@@ -86,15 +97,15 @@ export const auth = betterAuth({
   databaseHooks: {
     session: {
       create: async (session) => {
-        logger.info({ event: "session_created", userId: session.userId, sessionId: session.id });
+        logAuthEvent({ event: "session_created", userId: session.userId, sessionId: session.id });
       },
       delete: async (session) => {
-        logger.info({ event: "session_deleted", sessionId: session.id });
+        logAuthEvent({ event: "session_deleted", sessionId: session.id });
       }
     },
     user: {
       create: async (user) => {
-        logger.info({ event: "user_registered", userId: user.id });
+        logAuthEvent({ event: "user_registered", userId: user.id });
       }
     }
   },
@@ -142,6 +153,22 @@ app.use("/dbsc-client", express.static(clientDir));
 // Guard routes that require device-bound proof using requireProof()
 app.get("/me", requireProof(), (req, res) => {
   res.json({ message: "Protected route accessed", dbsc: res.locals.dbsc || null });
+});
+
+// New route for account deletion (GDPR Compliance)
+app.post("/api/auth/delete-account", async (req, res) => {
+  try {
+    const session = await auth.api.getSession({ headers: req.headers });
+    if (!session) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    await auth.api.deleteUser({ sessionId: session.session.id });
+    logAuthEvent({ event: "account_deleted", userId: session.user.id });
+    res.json({ message: "Account deleted successfully" });
+  } catch (err) {
+    logger.error({ err }, "Failed to delete account");
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Global Error Handler
