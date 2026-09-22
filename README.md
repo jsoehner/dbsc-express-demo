@@ -83,3 +83,23 @@ A comprehensive security pipeline was executed on this project, covering Threat 
 - **Vulnerabilities**: 0 CVEs detected.
 - **Security Posture**: Verified as high-security with hardware-bound session credentials (DBSC), TLS, and robust rate-limiting.
 - **Compliance**: Meets core requirements for session security and data retention.
+
+## Security Audit Summary
+
+A comprehensive security pipeline was executed on this project, covering Threat Modeling (STRIDE), Vulnerability Scanning, and Compliance Verification.
+
+- **Vulnerabilities**: 0 CVEs detected.
+- **Security Posture**: Verified as high-security with hardware-bound session credentials (DBSC), TLS, and robust rate-limiting.
+- **Compliance**: Meets core requirements for session security and data retention.
+
+See the full audit report in [piolium/final-audit-report.md](piolium/final-audit-report.md) for details.
+
+## Security Audit Summary
+
+A comprehensive security pipeline was executed on this project, covering Threat Modeling (STRIDE), Vulnerability Scanning, and Compliance Verification.
+
+- **Vulnerabilities**: 0 CVEs detected.
+- **Security Posture**: Verified as high-security with hardware-bound session credentials (DBSC), TLS, and robust rate-limiting.
+- **Compliance**: Meets core requirements for session security and data retention.
+
+See the full audit report in [piolium/final-audit-report.md](piolium/final-audit-report.md) for details.
