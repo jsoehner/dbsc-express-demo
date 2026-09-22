@@ -48,7 +48,7 @@ jobs:
           body: ${{ steps.tag_version.outputs.changelog }}
 
       - name: Log in to the Container registry (GHCR)
-        uses: docker/login-action@v1
+        uses: docker/login-action@06033100-2a33-481a-9e53-9163f65048c1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
