@@ -103,3 +103,7 @@ A comprehensive security pipeline was executed on this project, covering Threat 
 - **Compliance**: Meets core requirements for session security and data retention.
 
 See the full audit report in [piolium/final-audit-report.md](piolium/final-audit-report.md) for details.
+
+
+## 🛡️ Security & Cryptographic Posture
+This project tracks Software & Cryptographic Bill of Materials (SBOM & CBOM) and Post-Quantum Cryptography (PQC) readiness. See the latest [Cryptographic Audit & PQC Migration Report](docs/security/CRYPTOGRAPHIC_AUDIT.md).
