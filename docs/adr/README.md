@@ -13,6 +13,8 @@ This directory contains the Architectural Decision Records (ADRs) for the projec
 | 0004 | [Standardize Data Directory within Application Workdir](0004-standardize-data-directory-in-docker.md) | 2026-09-15 | Accepted | Standardize persistence paths to `./data/` relative to `/app` in container. |
 | 0005 | [Security Testing Workflow Hardening and Reporting-Mode Trivy](0005-security-testing-workflow-hardening.md) | 2026-09-19 | Accepted | Configure Trivy scanning in reporting mode to provide continuous visibility without blocking CI on demo assets. |
 | 0006 | [Security Pipeline Audit Results](0006-security-pipeline-audit-results.md) | 2026-09-19 | Accepted | Validate defense-in-depth posture, DBSC hardware-backed session security, and zero CVE baseline. |
+| 0007 | [Automated SBOM & CBOM Supply Chain Governance](0007-automated-sbom-cbom-supply-chain-governance.md) | 2026-10-11 | Accepted | Integrate automated dual-engine SBOM (Syft), CBOM (cbomkit), AST crypto scanning, and CI test harness. |
 | 0007 | [Consolidate Security Governance, Pin Action SHAs, and Retire Redundant Testing Workflow](0007-consolidate-security-governance-and-pin-workflow-shas.md) | 2026-09-25 | Accepted | Retire duplicate testing workflow, pin GitHub Actions to full commit SHAs, and prevent script injection. |
 | 0008 | [Dual-Engine BOM Governance, Action Pinning, and Workflow Standardization](0008-dual-engine-bom-governance-and-workflow-standardization.md) | 2026-09-27 | Accepted | Standardize dual-engine BOM suite, pin actions to commit SHAs, and configure commitlint rules. |
+
 
