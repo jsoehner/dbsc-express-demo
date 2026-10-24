@@ -16,8 +16,8 @@
 | Evaluation Layer | Coverage / Status | Audit Confidence Assessment |
 |---|---|---|
 | **First-Party Code (`src/`)** | **100% Audited** (0 Custom Primitives) | 🟢 **HIGH** (Direct AST & SAST verified clean) |
-| **Third-Party Supply Chain** | **0.0%** (0 of 143 dependencies cataloged) | 🔴 LOW (Known profiles assimilated) |
-| **Overall Audit Confidence Score** | **0.7%** | 🔴 LOW (143 unassimilated supply chain dependencies) |
+| **Third-Party Supply Chain** | **0.0%** (0 of 142 dependencies cataloged) | 🔴 LOW (Known profiles assimilated) |
+| **Overall Audit Confidence Score** | **0.7%** | 🔴 LOW (142 unassimilated supply chain dependencies) |
 
 | **System OS Inventory** | **Pending Update** | 🟡 **Warning** (Local OS crypto components not yet inventoried) |
 
@@ -39,19 +39,19 @@
 
 | Dependency Name | Version | Package URL (purl) | Status |
 |---|---|---|---|
-| `@better-auth/core` | 1.7.10 | `pkg:npm/%40better-auth/core@1.7.10` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/drizzle-adapter` | 1.7.10 | `pkg:npm/%40better-auth/drizzle-adapter@1.7.10` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/kysely-adapter` | 1.7.10 | `pkg:npm/%40better-auth/kysely-adapter@1.7.10` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/memory-adapter` | 1.7.10 | `pkg:npm/%40better-auth/memory-adapter@1.7.10` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/mongo-adapter` | 1.7.10 | `pkg:npm/%40better-auth/mongo-adapter@1.7.10` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/prisma-adapter` | 1.7.10 | `pkg:npm/%40better-auth/prisma-adapter@1.7.10` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/telemetry` | 1.7.10 | `pkg:npm/%40better-auth/telemetry@1.7.10` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/core` | 1.7.12 | `pkg:npm/%40better-auth/core@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/drizzle-adapter` | 1.7.12 | `pkg:npm/%40better-auth/drizzle-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/kysely-adapter` | 1.7.12 | `pkg:npm/%40better-auth/kysely-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/memory-adapter` | 1.7.12 | `pkg:npm/%40better-auth/memory-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/mongo-adapter` | 1.7.12 | `pkg:npm/%40better-auth/mongo-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/prisma-adapter` | 1.7.12 | `pkg:npm/%40better-auth/prisma-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/telemetry` | 1.7.12 | `pkg:npm/%40better-auth/telemetry@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
 | `@better-auth/utils` | 0.5.0 | `pkg:npm/%40better-auth/utils@0.5.0` | 🟡 Unassimilated (No upstream CBOM) |
 | `@better-fetch/fetch` | 1.3.2 | `pkg:npm/%40better-fetch/fetch@1.3.2` | 🟡 Unassimilated (No upstream CBOM) |
 | `@dbsc-toolkit/better-auth` | 1.2.2 | `pkg:npm/%40dbsc-toolkit/better-auth@1.2.2` | 🟡 Unassimilated (No upstream CBOM) |
 | `@noble/ciphers` | 2.4.0 | `pkg:npm/%40noble/ciphers@2.4.0` | 🟡 Unassimilated (No upstream CBOM) |
 | `@noble/hashes` | 2.4.0 | `pkg:npm/%40noble/hashes@2.4.0` | 🟡 Unassimilated (No upstream CBOM) |
-| `@opentelemetry/semantic-conventions` | 1.43.0 | `pkg:npm/%40opentelemetry/semantic-conventions@1.43.0` | 🟡 Unassimilated (No upstream CBOM) |
 | `@pinojs/redact` | 0.4.0 | `pkg:npm/%40pinojs/redact@0.4.0` | 🟡 Unassimilated (No upstream CBOM) |
 | `@standard-schema/spec` | 1.1.0 | `pkg:npm/%40standard-schema/spec@1.1.0` | 🟡 Unassimilated (No upstream CBOM) |
-| *... and 128 more unassimilated dependencies* | | | |
+| `accepts` | 2.0.0 | `pkg:npm/accepts@2.0.0` | 🟡 Unassimilated (No upstream CBOM) |
+| *... and 127 more unassimilated dependencies* | | | |
