@@ -16,8 +16,8 @@
 | Evaluation Layer | Coverage / Status | Audit Confidence Assessment |
 |---|---|---|
 | **First-Party Code (`src/`)** | **100% Audited** (0 Custom Primitives) | 🟢 **HIGH** (Direct AST & SAST verified clean) |
-| **Third-Party Supply Chain** | **0.0%** (0 of 144 dependencies cataloged) | 🔴 LOW (Known profiles assimilated) |
-| **Overall Audit Confidence Score** | **0.7%** | 🔴 LOW (144 unassimilated supply chain dependencies) |
+| **Third-Party Supply Chain** | **0.0%** (0 of 143 dependencies cataloged) | 🔴 LOW (Known profiles assimilated) |
+| **Overall Audit Confidence Score** | **0.7%** | 🔴 LOW (143 unassimilated supply chain dependencies) |
 
 | **System OS Inventory** | **Pending Update** | 🟡 **Warning** (Local OS crypto components not yet inventoried) |
 
@@ -54,4 +54,4 @@
 | `@opentelemetry/semantic-conventions` | 1.43.0 | `pkg:npm/%40opentelemetry/semantic-conventions@1.43.0` | 🟡 Unassimilated (No upstream CBOM) |
 | `@pinojs/redact` | 0.4.0 | `pkg:npm/%40pinojs/redact@0.4.0` | 🟡 Unassimilated (No upstream CBOM) |
 | `@standard-schema/spec` | 1.1.0 | `pkg:npm/%40standard-schema/spec@1.1.0` | 🟡 Unassimilated (No upstream CBOM) |
-| *... and 129 more unassimilated dependencies* | | | |
+| *... and 128 more unassimilated dependencies* | | | |
