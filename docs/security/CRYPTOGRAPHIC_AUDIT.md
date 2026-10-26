@@ -39,15 +39,15 @@
 
 | Dependency Name | Version | Package URL (purl) | Status |
 |---|---|---|---|
-| `@better-auth/core` | 1.7.12 | `pkg:npm/%40better-auth/core@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/drizzle-adapter` | 1.7.12 | `pkg:npm/%40better-auth/drizzle-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/kysely-adapter` | 1.7.12 | `pkg:npm/%40better-auth/kysely-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/memory-adapter` | 1.7.12 | `pkg:npm/%40better-auth/memory-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/mongo-adapter` | 1.7.12 | `pkg:npm/%40better-auth/mongo-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/prisma-adapter` | 1.7.12 | `pkg:npm/%40better-auth/prisma-adapter@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/telemetry` | 1.7.12 | `pkg:npm/%40better-auth/telemetry@1.7.12` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-auth/utils` | 0.5.0 | `pkg:npm/%40better-auth/utils@0.5.0` | 🟡 Unassimilated (No upstream CBOM) |
-| `@better-fetch/fetch` | 1.3.2 | `pkg:npm/%40better-fetch/fetch@1.3.2` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/core` | 1.7.13 | `pkg:npm/%40better-auth/core@1.7.13` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/drizzle-adapter` | 1.7.13 | `pkg:npm/%40better-auth/drizzle-adapter@1.7.13` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/kysely-adapter` | 1.7.13 | `pkg:npm/%40better-auth/kysely-adapter@1.7.13` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/memory-adapter` | 1.7.13 | `pkg:npm/%40better-auth/memory-adapter@1.7.13` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/mongo-adapter` | 1.7.13 | `pkg:npm/%40better-auth/mongo-adapter@1.7.13` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/prisma-adapter` | 1.7.13 | `pkg:npm/%40better-auth/prisma-adapter@1.7.13` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/telemetry` | 1.7.13 | `pkg:npm/%40better-auth/telemetry@1.7.13` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-auth/utils` | 0.5.1 | `pkg:npm/%40better-auth/utils@0.5.1` | 🟡 Unassimilated (No upstream CBOM) |
+| `@better-fetch/fetch` | 1.3.3 | `pkg:npm/%40better-fetch/fetch@1.3.3` | 🟡 Unassimilated (No upstream CBOM) |
 | `@dbsc-toolkit/better-auth` | 1.2.2 | `pkg:npm/%40dbsc-toolkit/better-auth@1.2.2` | 🟡 Unassimilated (No upstream CBOM) |
 | `@noble/ciphers` | 2.4.0 | `pkg:npm/%40noble/ciphers@2.4.0` | 🟡 Unassimilated (No upstream CBOM) |
 | `@noble/hashes` | 2.4.0 | `pkg:npm/%40noble/hashes@2.4.0` | 🟡 Unassimilated (No upstream CBOM) |
