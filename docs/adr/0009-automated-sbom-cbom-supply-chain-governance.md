@@ -1,4 +1,4 @@
-# ADR 0007: Automated SBOM and CBOM Supply Chain Governance
+# ADR 0009: Automated SBOM and CBOM Supply Chain Governance
 
 * **Status:** Accepted
 * **Deciders:** DBSC Express Demo Engineering & Security Team

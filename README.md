@@ -75,7 +75,9 @@ We maintain Architectural Decision Records in the [`docs/adr/`](docs/adr/) direc
 *   **[ADR 0004](docs/adr/0004-standardize-data-directory-in-docker.md)**: Standardize Data Directory within Application Workdir in Docker
 *   **[ADR 0005](docs/adr/0005-security-testing-workflow-hardening.md)**: Security Testing Workflow Hardening and Reporting-Mode Trivy Scanning
 *   **[ADR 0006](docs/adr/0006-security-pipeline-audit-results.md)**: Security Pipeline Audit Results
-*   **[ADR 0007](docs/adr/0007-automated-sbom-cbom-supply-chain-governance.md)**: Automated SBOM and CBOM Supply Chain Governance
+*   **[ADR 0007](docs/adr/0007-consolidate-security-governance-and-pin-workflow-shas.md)**: Consolidate Security Governance, Pin Action SHAs, and Retire Redundant Testing Workflow
+*   **[ADR 0008](docs/adr/0008-dual-engine-bom-governance-and-workflow-standardization.md)**: Dual-Engine BOM Governance, Action Pinning, and Workflow Standardization
+*   **[ADR 0009](docs/adr/0009-automated-sbom-cbom-supply-chain-governance.md)**: Automated SBOM and CBOM Supply Chain Governance
 
 ## Security Audit Summary
 
@@ -120,5 +122,5 @@ python3 scripts/analyze_cbom.py oss/cbom.json --sbom oss/sbom.cyclonedx.json --m
 bash scripts/test_boms.sh oss
 ```
 
-For detailed architectural rationale, trade-offs, and compliance mapping, refer to [**ADR 0007: Automated SBOM and CBOM Supply Chain Governance**](docs/adr/0007-automated-sbom-cbom-supply-chain-governance.md).
+For detailed architectural rationale, trade-offs, and compliance mapping, refer to [**ADR 0009: Automated SBOM and CBOM Supply Chain Governance**](docs/adr/0009-automated-sbom-cbom-supply-chain-governance.md).
 
