@@ -109,7 +109,13 @@ async function handleAuth(action, bindDevice = false) {
       body: JSON.stringify({ email, password, name })
     });
     
-    const data = await res.json();
+    const rawText = await res.text();
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      data = { message: rawText };
+    }
     
     if (!res.ok) {
       const errMsg = data.message || data.error?.message || JSON.stringify(data);
@@ -211,7 +217,13 @@ $("fetch-btn").addEventListener("click", async () => {
     const fetcher = window.boundFetch || fetch;
     
     const res = await fetcher("/me", { credentials: "include" });
-    const data = await res.json();
+    const rawText = await res.text();
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      data = { message: rawText };
+    }
     
     out.style.color = res.ok ? "var(--success)" : "var(--danger)";
     out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
@@ -245,7 +257,13 @@ $("stolen-btn").addEventListener("click", async () => {
     // We use plain fetch instead of boundFetch to simulate an attacker 
     // who stole the cookie but can't generate the DBSC signature.
     const res = await fetch("/me", { credentials: "include" });
-    const data = await res.json();
+    const rawText = await res.text();
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      data = { message: rawText };
+    }
     
     out.style.color = res.ok ? "var(--success)" : "var(--danger)";
     out.textContent = `${res.status} ${res.statusText}\n\n${JSON.stringify(data, null, 2)}`;
