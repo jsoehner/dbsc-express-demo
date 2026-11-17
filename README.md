@@ -68,6 +68,8 @@ During development and UI iteration, several important lessons were learned:
 8. **Multi-Stage Node Builds**: Moving to a multi-stage Docker build is a great way to discard the bulky dependencies (like OS packages such as `openssl` or cached `npm` modules) needed to build certificates or generate SQLite migration files, yielding a significantly smaller, hardened production container.
 9. **State Preservation in DBSC UIs**: When interacting with APIs that only return the session's current active `tier` (e.g., fetching a protected `/me` route), be careful not to accidentally overwrite the browser's hardware capability `phase` state in your UI. A session's tier may be `bound` (Web Crypto) even if the hardware phase is `native-dbsc` (due to server fallbacks). Always preserve the initial hardware capability phase globally to prevent UI components from spontaneously downgrading when receiving partial state updates.
 10. **Native DBSC vs polyfill `boundFetch`**: The `dbsc-toolkit` provides a `window.boundFetch` polyfill wrapper AND monkey-patches `window.fetch` to fallback automatically in some cases. If the browser successfully negotiated Native DBSC (which runs at the OS/browser network stack level), you should **not** use the polyfill. Using it while native DBSC is active will accidentally intercept the request and perform a Web Crypto signature, overwriting the session's native registration on the server and downgrading the tier from `dbsc` to `bound`. Always capture an un-patched reference to `window.fetch` before the toolkit loads, and use a check (e.g., `isNative ? unpatchedFetch : window.boundFetch`) before dispatching requests.
+11. **Strict CSP & External JS Modules**: `helmet()` enforces `script-src 'self'` by default, which blocks inline `<script>` tags. Keeping client logic in [`public/js/fetch-interceptor.js`](public/js/fetch-interceptor.js) and [`public/js/app.js`](public/js/app.js) preserves strict XSS protection without `'unsafe-inline'`.
+12. **Programmatic Startup Migrations & JSON Rate Limits**: Calling `getMigrations(auth.options)` on startup in [`server.js`](server.js) prevents `SCHEMA_MISMATCH` errors across Better Auth upgrades and fresh volumes, while JSON-formatted `express-rate-limit` responses (`100` req / 5 min for `/api/auth`) accommodate multi-step DBSC registration and challenge handshakes cleanly.
 
 ## Frequently Asked Questions (FAQ)
 
@@ -101,6 +103,7 @@ We maintain Architectural Decision Records in the [`docs/adr/`](docs/adr/) direc
 *   **[ADR 0008](docs/adr/0008-dual-engine-bom-governance-and-workflow-standardization.md)**: Dual-Engine BOM Governance, Action Pinning, and Workflow Standardization
 *   **[ADR 0009](docs/adr/0009-automated-sbom-cbom-supply-chain-governance.md)**: Automated SBOM and CBOM Supply Chain Governance
 *   **[ADR 0010](docs/adr/0010-hybrid-pqc-tls-and-audit-migration.md)**: Hybrid Post-Quantum Cryptography (PQC) TLS & Audit Signing Migration
+*   **[ADR 0011](docs/adr/0011-csp-external-scripts-startup-migrations-and-rate-limiting.md)**: Strict CSP External JS Modules, Startup DB Migrations, and DBSC Rate-Limit Hardening
 
 ## Security Audit Summary
 
