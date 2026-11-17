@@ -25,17 +25,17 @@
 
 | Component Name | Primitive | Key/Parameter Set | PQC Standard | Provenance / Location(s) |
 |---|---|---|---|---|
-| `ML-DSA-65` | signature | 65 | ML-DSA (FIPS 204) | First-Party Code (SAST/AST)<br>`server.js:19`<br>`server.js:34`<br>`server.js:49`<br>`server.js:52`<br>`server.js:199` |
-| `X25519MLKEM768` | kem | X25519+ML-KEM-768 | Hybrid X25519+ML-KEM-768 (FIPS 203) | First-Party Code (SAST/AST)<br>`server.js:35`<br>`server.js:197` |
+| `ML-DSA-65` | signature | 65 | ML-DSA (FIPS 204) | First-Party Code (SAST/AST)<br>`server.js:20`<br>`server.js:35`<br>`server.js:50`<br>`server.js:53`<br>`server.js:211` |
+| `X25519MLKEM768` | kem | X25519+ML-KEM-768 | Hybrid X25519+ML-KEM-768 (FIPS 203) | First-Party Code (SAST/AST)<br>`server.js:36`<br>`server.js:209` |
 | `@noble/post-quantum (Noble Post-Quantum KEM & Signatures (ML-KEM-768 / ML-DSA-65 / SLH-DSA))` | kem | 768 / 65 | ML-KEM (FIPS 203) | Assimilated Upstream CBOM: Noble Audited Post-Quantum Cryptography (ML-KEM / ML-DSA / SLH-DSA)<br>`Dependency: @noble/post-quantum@0.7.1` |
 
 ### ⚠️ Quantum-Vulnerable Assets & Remediation Plan
 
 | Component / Algorithm | Type / Primitive | Key Length / Curve | Recommended Target | Provenance / Context |
 |---|---|---|---|---|
-| **`ECDSA-P384`**<br><sub>ECDSA-P384</sub> | algorithm / signature | secp384r1 | **ML-DSA-65 / Dilithium (FIPS 204)** | First-Party Code (SAST/AST)<br>`server.js:35`<br><sub><code>const PQC_TLS_CURVES = "X25519MLKEM768:X25519:P-256:P-384";</code></sub> |
-| **`ECDH-X25519`**<br><sub>ECDH-X25519</sub> | algorithm / key-agreement | 25519 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`server.js:35`<br><sub><code>const PQC_TLS_CURVES = "X25519MLKEM768:X25519:P-256:P-384";</code></sub><br><br>`server.js:197`<br><sub><code>tlsKeyExchange: supportsHybridPqcTls ? "X25519MLKEM768" : "X25519",</code></sub> |
-| **`RSA-2048`**<br><sub>RSA-2048</sub> | algorithm / signature | 2048 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`server.js:202`<br><sub><code>dbscSessionBinding: "ECDSA-P256 / RSA-2048 (Hardware TPM / WebCrypto - awaiting W3C DBSC PQC)",</code></sub> |
+| **`ECDSA-P384`**<br><sub>ECDSA-P384</sub> | algorithm / signature | secp384r1 | **ML-DSA-65 / Dilithium (FIPS 204)** | First-Party Code (SAST/AST)<br>`server.js:36`<br><sub><code>const PQC_TLS_CURVES = "X25519MLKEM768:X25519:P-256:P-384";</code></sub> |
+| **`ECDH-X25519`**<br><sub>ECDH-X25519</sub> | algorithm / key-agreement | 25519 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`server.js:36`<br><sub><code>const PQC_TLS_CURVES = "X25519MLKEM768:X25519:P-256:P-384";</code></sub><br><br>`server.js:209`<br><sub><code>tlsKeyExchange: supportsHybridPqcTls ? "X25519MLKEM768" : "X25519",</code></sub> |
+| **`RSA-2048`**<br><sub>RSA-2048</sub> | algorithm / signature | 2048 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`server.js:214`<br><sub><code>dbscSessionBinding: "ECDSA-P256 / RSA-2048 (Hardware TPM / WebCrypto - awaiting W3C DBSC PQC)",</code></sub> |
 | **`ECDSA-P256`**<br><sub>ECDSA-P256</sub> | algorithm / signature | secp256r1 | **ML-DSA-65 / Dilithium (FIPS 204)** | First-Party Code (SAST/AST)<br>`public/js/fetch-interceptor.js:9`<br><sub><code>{ name: "ECDSA", namedCurve: "P-256" },</code></sub><br><br>`public/js/app.js:138`<br><sub><code>out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 2:</span> Requesting WebCrypto to generat</code></sub> |
 | **`Cryptographic-Key-Material`**<br><sub>Cryptographic-Key-Material</sub> | related-crypto-material / key-material | Asymmetric/KMS-Key | **ML-DSA-65 / SLH-DSA X.509 Certificate & KMS Key Rotation** | First-Party Code (SAST/AST)<br>`public/js/fetch-interceptor.js:15`<br><sub><code>const pem = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64.match(/.{1,64}/g).join('\\n')}\n-----END PUBLIC KEY-----`;</code></sub> |
 | **`@better-auth/core (Auth OIDC / WebAuthn Asymmetric Verification (ES256 / RS256 / Ed25519))`**<br><sub>ECDSA-P256 / RSA-2048 / Ed25519</sub> | signature / signature | 256 / 2048 | **Transition asymmetric OIDC/WebAuthn verifiers to ML-DSA (FIPS 204)** | Assimilated Upstream CBOM: Session, OIDC & CSRF Cryptographic Specification<br>`Dependency: @better-auth/core@1.7.25` |
