@@ -12,12 +12,15 @@ import { createBetterAuthStorageAdapter } from "@dbsc-toolkit/better-auth/intern
 import { toNodeHandler } from "better-auth/node";
 import path from "node:path";
 import { createRequire } from "node:module";
-import https from "https";
+import https from "node:https";
+import tls from "node:tls";
 import pino from "pino";
 import pinoHttp from "pino-http";
+import { ml_dsa65 } from "@noble/post-quantum/ml-dsa.js";
 
 const require = createRequire(import.meta.url);
 
+fs.mkdirSync("logs", { recursive: true });
 const logStream = fs.createWriteStream("logs/security.log", { flags: "a" });
 const securityLogger = pino({
   level: "info",
@@ -27,9 +30,28 @@ const securityLogger = pino({
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const app = express();
 
-// Security Logger for auth events
+// FIPS 204 ML-DSA-65 runtime keypair for signing security audit events
+const pqcAuditKeys = ml_dsa65.keygen();
+const PQC_TLS_CURVES = "X25519MLKEM768:X25519:P-256:P-384";
+
+const supportsHybridPqcTls = (() => {
+  try {
+    tls.createSecureContext({ ecdhCurve: PQC_TLS_CURVES });
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+// Security Logger for auth events with ML-DSA-65 (FIPS 204) integrity signature
 const logAuthEvent = (event) => {
-  securityLogger.info({ ...event, timestamp: new Date().toISOString() });
+  const payload = { ...event, timestamp: new Date().toISOString() };
+  const sig = ml_dsa65.sign(new TextEncoder().encode(JSON.stringify(payload)), pqcAuditKeys.secretKey);
+  securityLogger.info({
+    ...payload,
+    pqcAlgorithm: "ML-DSA-65",
+    pqcSignature: Buffer.from(sig).toString("base64"),
+  });
 };
 
 // Set up structured logging for HTTP requests
@@ -79,7 +101,7 @@ setInterval(() => {
   } catch (err) {
     logger.error({ err }, "Failed to clean up expired sessions");
   }
-}, 1000 * 60 * 60); // Run every hour
+}, 1000 * 60 * 60).unref(); // Run every hour without keeping event loop alive
 
 // Initialize Better Auth with DBSC plugin
 export const auth = betterAuth({
@@ -122,14 +144,6 @@ export const auth = betterAuth({
 const ctx = await auth.$context;
 const storage = createBetterAuthStorageAdapter(ctx.adapter, ctx.internalAdapter);
 
-const originalGetSession = storage.getSession;
-storage.getSession = async function(reqOrId) {
-  console.log("getSession called with:", reqOrId);
-  const sess = await originalGetSession.call(this, reqOrId);
-  console.log("getSession returned:", sess);
-  return sess;
-};
-
 // Apply DBSC middleware
 // Reads the bound cookie + sets the per-request tier on res.locals.dbsc
 app.use(dbscMiddleware({ storage }));
@@ -143,19 +157,7 @@ const authLimiter = rateLimit({
 });
 app.use("/api/auth", authLimiter);
 
-// Mount Better Auth API routes (this also mounts /api/auth/dbsc/* routes)
-app.use("/api/auth", toNodeHandler(auth));
-
-// Serve the polyfill SDK for the client
-const clientDir = path.join(path.dirname(require.resolve("dbsc-toolkit/package.json")), "dist", "client");
-app.use("/dbsc-client", express.static(clientDir));
-
-// Guard routes that require device-bound proof using requireProof()
-app.get("/me", requireProof(), (req, res) => {
-  res.json({ message: "Protected route accessed", dbsc: res.locals.dbsc || null });
-});
-
-// New route for account deletion (GDPR Compliance)
+// Custom GDPR account deletion route (must be registered before Better Auth catch-all)
 app.post("/api/auth/delete-account", async (req, res) => {
   try {
     const session = await auth.api.getSession({ headers: req.headers });
@@ -171,6 +173,41 @@ app.post("/api/auth/delete-account", async (req, res) => {
   }
 });
 
+// Mount Better Auth API routes (this also mounts /api/auth/dbsc/* routes)
+app.use("/api/auth", toNodeHandler(auth));
+
+// Serve the polyfill SDK for the client
+const clientDir = path.join(path.dirname(require.resolve("dbsc-toolkit/package.json")), "dist", "client");
+app.use("/dbsc-client", express.static(clientDir));
+
+// Health check endpoint for container readiness/liveness probes
+app.get("/health", (req, res) => {
+  try {
+    db.prepare("SELECT 1").get();
+    res.json({ status: "ok", db: "connected" });
+  } catch (err) {
+    logger.error({ err }, "Health check failed");
+    res.status(503).json({ status: "error", db: "disconnected" });
+  }
+});
+
+// Post-Quantum Cryptography (PQC) runtime posture endpoint
+app.get("/api/crypto/pqc-status", (req, res) => {
+  res.json({
+    tlsKeyExchange: supportsHybridPqcTls ? "X25519MLKEM768" : "X25519",
+    tlsHybridPqcSupported: supportsHybridPqcTls,
+    auditSignatureAlgorithm: "ML-DSA-65",
+    auditSignatureStandard: "NIST FIPS 204",
+    auditPublicKey: Buffer.from(pqcAuditKeys.publicKey).toString("base64"),
+    dbscSessionBinding: "ECDSA-P256 / RSA-2048 (Hardware TPM / WebCrypto - awaiting W3C DBSC PQC)",
+  });
+});
+
+// Guard routes that require device-bound proof using requireProof()
+app.get("/me", requireProof(), (req, res) => {
+  res.json({ message: "Protected route accessed", dbsc: res.locals.dbsc || null });
+});
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err);
@@ -183,6 +220,8 @@ app.use((err, req, res, next) => {
     stack: isProduction ? undefined : err.stack,
   });
 });
+
+export { app, db };
 
 // Start HTTPS server only if not running migrations
 if (!process.env.MIGRATION) {
@@ -199,12 +238,16 @@ if (!process.env.MIGRATION) {
 
   const options = {
     key: fs.readFileSync(keyPath),
-    cert: fs.readFileSync(certPath)
+    cert: fs.readFileSync(certPath),
+    minVersion: "TLSv1.2",
+    ...(supportsHybridPqcTls ? { ecdhCurve: PQC_TLS_CURVES } : {}),
   };
 
-  https.createServer(options, app).listen(3000, () => {
-    const host = new URL(process.env.BASE_URL || "http://localhost:3000").host;
-    console.log(`DBSC demo running on https://${host}:3000`);
+  const port = Number(process.env.PORT) || 3000;
+  https.createServer(options, app).listen(port, () => {
+    const hostname = new URL(process.env.BASE_URL || `https://localhost:${port}`).hostname;
+    console.log(`DBSC demo running on https://${hostname}:${port}`);
+    console.log(`PQC TLS Hybrid Key Exchange (X25519MLKEM768): ${supportsHybridPqcTls ? "ENABLED" : "FALLBACK"}`);
     console.log("NOTE: You will need to accept the self-signed certificate warning in your browser.");
   });
 }

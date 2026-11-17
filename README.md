@@ -1,8 +1,30 @@
-# DBSC Express Demo
+# DBSC Express Demo (v1.1.0)
 
-This is a demonstration of Device Bound Session Credentials (DBSC) with Express.js running in Docker.
+This is a demonstration of Device Bound Session Credentials (DBSC) with Express.js 5 running in Docker, featuring hybrid Post-Quantum Cryptography (PQC) TLS 1.3 (`X25519MLKEM768`) and FIPS 204 (`ML-DSA-65`) security audit signing.
 
-## Local Development with Docker
+## Architecture & Data Flow
+
+![DBSC Express Demo Architecture and Data Flow](docs/images/architecture-dataflow.jpg)
+
+### Key Components
+- **Browser / Client (`public/index.html` + `dbsc-toolkit`)**: Supports Native DBSC (`tier=dbsc` via Chromium TPM/Secure Enclave) and automatic Web Crypto polyfill fallback (`window.boundFetch`, `tier=bound`).
+- **Express.js 5 Server (`server.js`)**: Enforces `helmet`, `cors`, `express-rate-limit`, structured `pino-http` logging, and `dbscMiddleware({ storage })` across `/api/auth/*`, `/api/auth/dbsc/*`, `/me`, `/health`, `/api/crypto/pqc-status`, and `/api/auth/delete-account`.
+- **Persistence & Audit (`data/db.sqlite` + `logs/security.log`)**: SQLite WAL database via `better-sqlite3` and `ML-DSA-65` signed security audit logs via `pino`.
+
+## Post-Quantum Cryptography (PQC) Posture
+
+- **Hybrid TLS 1.3 Key Exchange (FIPS 203)**: Configured with `X25519MLKEM768:X25519:P-256:P-384` when supported by the Node.js/OpenSSL runtime.
+- **Security Audit Log Signing (FIPS 204)**: Auth and session lifecycle events in `logs/security.log` are signed using `ML-DSA-65` via `@noble/post-quantum`.
+- **Live Posture Endpoint**: Query `GET /api/crypto/pqc-status` to inspect active TLS key exchange, the `ML-DSA-65` public key, and remaining upstream DBSC/WebAuthn PQC roadmap items.
+
+## Local Development & Testing
+
+### Running Automated Tests
+```bash
+npm test
+```
+
+### Local Development with Docker
 
 To improve the developer experience and make it easy to test changes locally, we support building and running the Docker container natively.
 
@@ -78,6 +100,7 @@ We maintain Architectural Decision Records in the [`docs/adr/`](docs/adr/) direc
 *   **[ADR 0007](docs/adr/0007-consolidate-security-governance-and-pin-workflow-shas.md)**: Consolidate Security Governance, Pin Action SHAs, and Retire Redundant Testing Workflow
 *   **[ADR 0008](docs/adr/0008-dual-engine-bom-governance-and-workflow-standardization.md)**: Dual-Engine BOM Governance, Action Pinning, and Workflow Standardization
 *   **[ADR 0009](docs/adr/0009-automated-sbom-cbom-supply-chain-governance.md)**: Automated SBOM and CBOM Supply Chain Governance
+*   **[ADR 0010](docs/adr/0010-hybrid-pqc-tls-and-audit-migration.md)**: Hybrid Post-Quantum Cryptography (PQC) TLS & Audit Signing Migration
 
 ## Security Audit Summary
 

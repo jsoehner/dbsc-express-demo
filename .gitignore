@@ -29,6 +29,7 @@ database.db
 .env.local
 
 # Logs
+logs/
 npm-debug.log*
 yarn-error.log*
 *.log

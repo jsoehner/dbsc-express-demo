@@ -33,8 +33,8 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 # Set ownership of the working directory
 RUN chown node:node /app
 
-# Create data directory for the runner
-RUN mkdir -p data && chown node:node data
+# Create data and logs directories for the runner
+RUN mkdir -p data logs && chown node:node data logs
 
 # Switch to the non-root user early
 USER node
@@ -54,6 +54,8 @@ ENV DATABASE_URL=./data/db.sqlite
 # Expose port 3000
 EXPOSE 3000
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "import('node:https').then(({default:h})=>{const r=h.request({hostname:'localhost',port:3000,path:'/health',rejectUnauthorized:false},res=>process.exit(res.statusCode===200?0:1));r.on('error',()=>process.exit(1));r.end();})"
 
 # Start the application
 CMD ["node", "server.js"]

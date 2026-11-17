@@ -16,5 +16,6 @@ This directory contains the Architectural Decision Records (ADRs) for the projec
 | 0007 | [Consolidate Security Governance, Pin Action SHAs, and Retire Redundant Testing Workflow](0007-consolidate-security-governance-and-pin-workflow-shas.md) | 2026-09-25 | Accepted | Retire duplicate testing workflow, pin GitHub Actions to full commit SHAs, and prevent script injection. |
 | 0008 | [Dual-Engine BOM Governance, Action Pinning, and Workflow Standardization](0008-dual-engine-bom-governance-and-workflow-standardization.md) | 2026-09-27 | Accepted | Standardize dual-engine BOM suite, pin actions to commit SHAs, and configure commitlint rules. |
 | 0009 | [Automated SBOM & CBOM Supply Chain Governance](0009-automated-sbom-cbom-supply-chain-governance.md) | 2026-10-11 | Accepted | Integrate automated dual-engine SBOM (Syft), CBOM (cbomkit), AST crypto scanning, and CI test harness. |
+| 0010 | [Hybrid Post-Quantum Cryptography (PQC) TLS & Audit Signing Migration](0010-hybrid-pqc-tls-and-audit-migration.md) | 2026-11-17 | Accepted | Enable `X25519MLKEM768` hybrid TLS 1.3 key exchange and `ML-DSA-65` (FIPS 204) security audit signing via `@noble/post-quantum`. |
 
 
