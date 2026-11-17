@@ -1,21 +1,21 @@
 ## 🛡️ Cryptographic Bill of Materials (CBOM) & PQC Migration Assessment
 
-**Format**: CycloneDX (v1.6) | **First-Party Code Crypto Assets**: 5 | **Total Tracked Crypto Assets**: 24
+**Format**: CycloneDX (v1.6) | **First-Party Code Crypto Assets**: 7 | **Total Tracked Crypto Assets**: 26
 
 ### 📊 Post-Quantum Migration Scorecard
 
 | Metric | Count | Migration Status |
 |---|---|---|
 | **Post-Quantum Ready (PQC)** | **3** | 🟢 Quantum-Resistant (NIST FIPS 203/204/205) |
-| **Quantum-Vulnerable (Backlog)** | **10** | 🔴 At Risk of 'Harvest Now, Decrypt Later' |
+| **Quantum-Vulnerable (Backlog)** | **12** | 🔴 At Risk of 'Harvest Now, Decrypt Later' |
 | **Classical Symmetric / Digest** | **11** | 🟡 Classical Security (Requires AES-256 / SHA-256+) |
-| **Asymmetric PQC Migration Progress** | **23.1%** | (3 of 13 asymmetric/vulnerable primitives migrated) |
+| **Asymmetric PQC Migration Progress** | **20.0%** | (3 of 15 asymmetric/vulnerable primitives migrated) |
 
 ### 🎯 Cryptographic Supply Chain Coverage & Confidence
 
 | Evaluation Layer | Coverage / Status | Audit Confidence Assessment |
 |---|---|---|
-| **First-Party Code (`src/`, `scripts/`)** | **100% Audited** (5 Crypto Primitive(s) Inventoried across JavaScript (11)) | 🟢 **HIGH** (Direct AST & SAST verified) |
+| **First-Party Code (`src/`, `scripts/`)** | **100% Audited** (7 Crypto Primitive(s) Inventoried across JavaScript (14)) | 🟢 **HIGH** (Direct AST & SAST verified) |
 | **Third-Party Supply Chain** | **97.8%** (133 of 136 dependencies cataloged) | 🟢 HIGH (Known profiles assimilated) |
 | **Overall Audit Confidence Score** | **97.8%** | 🟢 HIGH (2 unassimilated supply chain dependencies) |
 
@@ -36,6 +36,8 @@
 | **`ECDSA-P384`**<br><sub>ECDSA-P384</sub> | algorithm / signature | secp384r1 | **ML-DSA-65 / Dilithium (FIPS 204)** | First-Party Code (SAST/AST)<br>`server.js:35`<br><sub><code>const PQC_TLS_CURVES = "X25519MLKEM768:X25519:P-256:P-384";</code></sub> |
 | **`ECDH-X25519`**<br><sub>ECDH-X25519</sub> | algorithm / key-agreement | 25519 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`server.js:35`<br><sub><code>const PQC_TLS_CURVES = "X25519MLKEM768:X25519:P-256:P-384";</code></sub><br><br>`server.js:197`<br><sub><code>tlsKeyExchange: supportsHybridPqcTls ? "X25519MLKEM768" : "X25519",</code></sub> |
 | **`RSA-2048`**<br><sub>RSA-2048</sub> | algorithm / signature | 2048 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`server.js:202`<br><sub><code>dbscSessionBinding: "ECDSA-P256 / RSA-2048 (Hardware TPM / WebCrypto - awaiting W3C DBSC PQC)",</code></sub> |
+| **`ECDSA-P256`**<br><sub>ECDSA-P256</sub> | algorithm / signature | secp256r1 | **ML-DSA-65 / Dilithium (FIPS 204)** | First-Party Code (SAST/AST)<br>`public/js/fetch-interceptor.js:9`<br><sub><code>{ name: "ECDSA", namedCurve: "P-256" },</code></sub><br><br>`public/js/app.js:138`<br><sub><code>out.innerHTML += `<div style="margin-top:8px"><span style="color:#38bdf8">Step 2:</span> Requesting WebCrypto to generat</code></sub> |
+| **`Cryptographic-Key-Material`**<br><sub>Cryptographic-Key-Material</sub> | related-crypto-material / key-material | Asymmetric/KMS-Key | **ML-DSA-65 / SLH-DSA X.509 Certificate & KMS Key Rotation** | First-Party Code (SAST/AST)<br>`public/js/fetch-interceptor.js:15`<br><sub><code>const pem = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64.match(/.{1,64}/g).join('\\n')}\n-----END PUBLIC KEY-----`;</code></sub> |
 | **`@better-auth/core (Auth OIDC / WebAuthn Asymmetric Verification (ES256 / RS256 / Ed25519))`**<br><sub>ECDSA-P256 / RSA-2048 / Ed25519</sub> | signature / signature | 256 / 2048 | **Transition asymmetric OIDC/WebAuthn verifiers to ML-DSA (FIPS 204)** | Assimilated Upstream CBOM: Session, OIDC & CSRF Cryptographic Specification<br>`Dependency: @better-auth/core@1.7.25` |
 | **`@better-auth/utils (Auth OIDC / WebAuthn Asymmetric Verification (ES256 / RS256 / Ed25519))`**<br><sub>ECDSA-P256 / RSA-2048 / Ed25519</sub> | signature / signature | 256 / 2048 | **Transition asymmetric OIDC/WebAuthn verifiers to ML-DSA (FIPS 204)** | Assimilated Upstream CBOM: Session, OIDC & CSRF Cryptographic Specification<br>`Dependency: @better-auth/utils@0.5.1` |
 | **`@dbsc-toolkit/better-auth (DBSC Hardware-Bound Session Proof-of-Possession JWT (ES256 / RS256))`**<br><sub>ECDSA-P256 / RSA-2048</sub> | signature / signature | 256 / 2048 | **Migrate DBSC hardware-bound proof-of-possession signatures to hybrid ML-DSA-65 (FIPS 204) as W3C DBSC and WebCrypto PQC standards mature** | Assimilated Upstream CBOM: W3C Device Bound Session Credentials (DBSC) Proof-of-Possession Specification<br>`Dependency: @dbsc-toolkit/better-auth@1.3.0` |
