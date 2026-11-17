@@ -57,3 +57,15 @@ test("GET /api/crypto/pqc-status reports ML-DSA-65 and hybrid PQC TLS support", 
   assert.equal(typeof body.tlsHybridPqcSupported, "boolean");
   assert.ok(body.auditPublicKey && body.auditPublicKey.length > 0);
 });
+
+test("GET / serves CSP-compliant HTML without inline scripts and serves external JS modules", async () => {
+  const htmlRes = await fetch(`${baseUrl}/`);
+  assert.equal(htmlRes.status, 200);
+  const html = await htmlRes.text();
+  assert.ok(!/<script(?![^>]*\bsrc=)/i.test(html), "index.html must not contain inline <script> blocks blocked by CSP");
+
+  const interceptorRes = await fetch(`${baseUrl}/js/fetch-interceptor.js`);
+  assert.equal(interceptorRes.status, 200);
+  const appRes = await fetch(`${baseUrl}/js/app.js`);
+  assert.equal(appRes.status, 200);
+});
