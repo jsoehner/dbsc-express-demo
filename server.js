@@ -5,6 +5,7 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { betterAuth } from "better-auth";
+import { getMigrations } from "better-auth/db/migration";
 import Database from "better-sqlite3";
 import { dbsc } from "@dbsc-toolkit/better-auth";
 import { dbsc as dbscMiddleware, requireProof } from "dbsc-toolkit/express";
@@ -80,6 +81,7 @@ app.use(cookieParser());
 app.use(express.static("public"));
 
 const dbPath = process.env.DATABASE_URL || "db.sqlite";
+fs.mkdirSync(path.dirname(path.resolve(dbPath)), { recursive: true });
 const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
 
@@ -139,6 +141,16 @@ export const auth = betterAuth({
     }
   })],
 });
+
+// Ensure Better Auth & DBSC SQLite tables exist automatically (both build-time and runtime)
+const { toBeCreated, toBeAdded, runMigrations } = await getMigrations(auth.options);
+if (toBeCreated.length > 0 || toBeAdded.length > 0) {
+  logger.info(
+    { toBeCreated: toBeCreated.map((t) => t.table), toBeAdded: toBeAdded.map((t) => t.table) },
+    "Applying Better Auth & DBSC database migrations"
+  );
+  await runMigrations();
+}
 
 // Create storage adapter for the middleware
 const ctx = await auth.$context;

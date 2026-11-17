@@ -20,7 +20,7 @@ ENV DATABASE_URL=./data/db.sqlite
 RUN openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -subj "/CN=localhost"
 
 # Run migrations to generate the local SQLite database
-RUN MIGRATION=1 npx --yes @better-auth/cli migrate -y --config server.js
+RUN MIGRATION=1 node -e "import('./server.js')"
 
 # --- Runner Stage ---
 FROM node:26-slim AS runner

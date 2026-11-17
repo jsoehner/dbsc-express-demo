@@ -1,7 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "dbsc-test-"));
+process.env.DATABASE_URL = path.join(tempDir, "test.sqlite");
 process.env.MIGRATION = "1";
 process.env.LOG_LEVEL = "silent";
 
@@ -24,6 +29,7 @@ test.before(async () => {
 test.after(async () => {
   await new Promise((resolve) => server.close(resolve));
   db.close();
+  fs.rmSync(tempDir, { recursive: true, force: true });
 });
 
 test("GET /health returns 200 and security headers", async () => {
@@ -68,4 +74,22 @@ test("GET / serves CSP-compliant HTML without inline scripts and serves external
   assert.equal(interceptorRes.status, 200);
   const appRes = await fetch(`${baseUrl}/js/app.js`);
   assert.equal(appRes.status, 200);
+});
+
+test("POST /api/auth/sign-up/email creates a user on a fresh migrated database", async () => {
+  const res = await fetch(`${baseUrl}/api/auth/sign-up/email`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://localhost:3000",
+    },
+    body: JSON.stringify({
+      email: "signup-test@example.com",
+      password: "StrongPassword123!",
+      name: "Test User",
+    }),
+  });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.user?.email, "signup-test@example.com");
 });
