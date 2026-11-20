@@ -115,38 +115,9 @@ A comprehensive security pipeline was executed on this project, covering Threat 
 
 See the full audit report in [piolium/final-audit-report.md](piolium/final-audit-report.md) for details.
 
-## Automated SBOM & CBOM Supply Chain Pipeline
+## 🔐 SBOM, CBOM & PQC Governance
 
-This repository incorporates an automated dual-engine Software Bill of Materials (SBOM) and Cryptographic Bill of Materials (CBOM) pipeline for end-to-end supply chain transparency, cryptographic posture assessment, and Post-Quantum Cryptography (PQC) readiness.
+This repository integrates the [`jsoehner/jsi-bom-actions`](https://github.com/jsoehner/jsi-bom-actions) GitHub Action ([`.github/workflows/sbom-cbom.yml`](.github/workflows/sbom-cbom.yml)) for automated Software Bill of Materials (SBOM), Cryptographic Bill of Materials (CBOM), and Post-Quantum Cryptography (PQC) readiness auditing.
 
-### Pipeline Architecture & CI Automation
-
-The pipeline is implemented via [`.github/workflows/sbom-cbom.yml`](.github/workflows/sbom-cbom.yml) and runs on pushes, pull requests, tags, and manual dispatches:
-
-1. **Dual-Engine SBOM Generation**: Employs Anchore / Syft to generate full dependency inventories in both CycloneDX JSON (`oss/sbom.cyclonedx.json`) and SPDX JSON (`oss/sbom.spdx.json`).
-2. **CBOM Generation**: Utilizes `cbomkit-action` to extract cryptographic algorithms, keys, certificates, and protocols into a CycloneDX Cryptographic Bill of Materials (`oss/cbom.json`).
-3. **AST Semantic Cryptographic Scan**: Runs [`scripts/scan_crypto_ast.py`](scripts/scan_crypto_ast.py) across the repository source tree to discover crypto call sites and reconcile them against the generated CBOM.
-4. **Verification Test Harness**: Executes [`scripts/test_boms.sh`](scripts/test_boms.sh) to validate schema conformity, non-empty packages/components, and cryptographic asset integrity.
-5. **PQC Readiness Analysis**: Runs [`scripts/analyze_cbom.py`](scripts/analyze_cbom.py) to assess quantum susceptibility, categorize algorithms (Classical, Transition, Post-Quantum), and publish an audit report to [`docs/security/CRYPTOGRAPHIC_AUDIT.md`](docs/security/CRYPTOGRAPHIC_AUDIT.md).
-6. **Artifact Archival**: Retains all generated BOM assets in GitHub Actions artifacts for 90 days.
-
-### Local Script Execution
-
-Developers can generate and test BOM artifacts locally before submitting pull requests:
-
-```bash
-# 1. Generate local SBOM (CycloneDX/SPDX) and CBOM artifacts in oss/
-bash scripts/generate_boms.sh
-
-# 2. Run semantic AST crypto discovery and CBOM reconciliation
-python3 scripts/scan_crypto_ast.py . --cbom oss/cbom.json
-
-# 3. Analyze cryptographic posture and quantum migration readiness
-python3 scripts/analyze_cbom.py oss/cbom.json --sbom oss/sbom.cyclonedx.json --markdown oss/crypto-summary.md
-
-# 4. Run automated BOM verification harness
-bash scripts/test_boms.sh oss
-```
-
-For detailed architectural rationale, trade-offs, and compliance mapping, refer to [**ADR 0009: Automated SBOM and CBOM Supply Chain Governance**](docs/adr/0009-automated-sbom-cbom-supply-chain-governance.md).
-
+- **Latest Audit Report:** [`docs/security/CRYPTOGRAPHIC_AUDIT.md`](docs/security/CRYPTOGRAPHIC_AUDIT.md)
+- **Learn More:** [jsoehner/jsi-bom-actions](https://github.com/jsoehner/jsi-bom-actions)
