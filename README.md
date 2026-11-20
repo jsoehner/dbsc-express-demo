@@ -1,5 +1,9 @@
 # DBSC Express Demo (v1.1.0)
 
+[![Build Verification](https://img.shields.io/badge/Build%20Verification-VERIFIED%20(2026--11--20)-brightgreen)](docs/BUILD_VERIFICATION.md)
+
+> **Build & Functional Verification**: Verified functional on `2026-11-20` by **Jeffs' Automated build and deploy agent** — see [docs/BUILD_VERIFICATION.md](docs/BUILD_VERIFICATION.md).
+
 This is a demonstration of Device Bound Session Credentials (DBSC) with Express.js 5 running in Docker, featuring hybrid Post-Quantum Cryptography (PQC) TLS 1.3 (`X25519MLKEM768`) and FIPS 204 (`ML-DSA-65`) security audit signing.
 
 ## Architecture & Data Flow
