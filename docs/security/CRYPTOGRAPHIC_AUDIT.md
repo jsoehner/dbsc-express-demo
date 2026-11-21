@@ -16,7 +16,7 @@
 | Evaluation Layer | Coverage / Status | Audit Confidence Assessment |
 |---|---|---|
 | **First-Party Code (`src/`, `scripts/`)** | **100% Audited** (7 Crypto Primitive(s) Inventoried across JavaScript (14)) | 🟢 **HIGH** (Direct AST & SAST verified) |
-| **Third-Party Supply Chain** | **97.8%** (133 of 136 dependencies cataloged) | 🟢 HIGH (Known profiles assimilated) |
+| **Third-Party Supply Chain** | **97.8%** (134 of 137 dependencies cataloged) | 🟢 HIGH (Known profiles assimilated) |
 | **Overall Audit Confidence Score** | **97.8%** | 🟢 HIGH (2 unassimilated supply chain dependencies) |
 
 | **System OS Inventory** | **Pending Update** | 🟡 **Warning** (Local OS crypto components not yet inventoried) |
