@@ -13,7 +13,7 @@
   "dependencies": {
     "@dbsc-toolkit/better-auth": "^1.3.0",
     "@noble/post-quantum": "^0.7.1",
-    "better-auth": "^1.7.26",
+    "better-auth": "^1.7.27",
     "better-sqlite3": "^13.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
